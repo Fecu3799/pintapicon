@@ -17,6 +17,7 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
     private lateinit var userAdapter: UserAdapter
 
     private lateinit var btn_atras: View
+    private lateinit var btnAgregarUsuario: View
 
     val sqlServerHelper = SQLServerHelper()
 
@@ -32,6 +33,7 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
 
 
         btn_atras = findViewById(R.id.btn_atras)
+        btnAgregarUsuario = findViewById(R.id.btnAgregarUsuario)
 
         // Obtener la lista de usuarios de la BD
         val users = sqlServerHelper.getUsers()
@@ -47,8 +49,12 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
             val user = userAdapter.getItem(position)
             user?.let {
                 val dialog = UserDetailDialog.newInstance(it)
-                dialog.show(supportFragmentManager, "UserDetailDialg")
+                dialog.show(supportFragmentManager, "UserDetailDialog")
             }
+        }
+
+        btnAgregarUsuario.setOnClickListener {
+
         }
 
         btn_atras.setOnClickListener {

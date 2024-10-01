@@ -56,6 +56,7 @@ class UserDetailDialog : DialogFragment() {
     private lateinit var userPosition : Spinner
 
     private lateinit var btnSave: Button
+    private lateinit var btnCancel: Button
 
     private val sqlServerHelper = SQLServerHelper()
     private lateinit var userViewModel: UserViewModel
@@ -94,6 +95,10 @@ class UserDetailDialog : DialogFragment() {
             saveUser()
         }
 
+        btnCancel.setOnClickListener {
+            dismiss()
+        }
+
     }
 
     private fun initViews() {
@@ -113,6 +118,7 @@ class UserDetailDialog : DialogFragment() {
         userSkill = view!!.findViewById(R.id.spner_userSkill)
         userPosition = view!!.findViewById(R.id.spner_userPosition)
         btnSave = view!!.findViewById(R.id.btn_save)
+        btnCancel = view!!.findViewById(R.id.btn_cancel)
     }
 
     private fun setViews() {
