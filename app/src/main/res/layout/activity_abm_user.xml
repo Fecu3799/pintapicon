@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main_admin"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".main.AbmUserActivity">
+
+    <View
+        android:id="@+id/btn_atras"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="15dp"
+        android:background="@drawable/ic_backspace"/>
+    <!-- Botón para agregar un nuevo usuario -->
+
+    <!-- ListView para mostrar la lista de usuarios -->
+    <Button
+        android:id="@+id/btnAgregarUsuario"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="76dp"
+        android:layout_marginTop="16dp"
+        android:layout_toEndOf="@id/btn_atras"
+        android:background="@drawable/et_background_light"
+        android:text="Agregar Usuario"
+        android:textColor="@color/black" />
+
+    <ListView
+        android:id="@+id/listViewUsuarios"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnAgregarUsuario"
+        android:layout_marginTop="16dp"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="1dp" />
+
+</RelativeLayout>

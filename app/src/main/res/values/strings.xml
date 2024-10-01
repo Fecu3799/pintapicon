@@ -1,0 +1,64 @@
+<resources>
+    <string name="app_name">PintaPiconV3</string>
+
+    // Log in
+    <string name="email">Correo electrónico</string>
+    <string name="password">Contraseña</string>
+    <string name="forgotPassword">Olvidé mi contraseña</string>
+    <string name="loginBoton">Iniciar sesión</string>
+    <string name="registerQuestion">Primera vez por aca?</string>
+    <string name="registerBoton">Registrate!</string>
+    <string name="titleLogin">PintaPicon</string>
+    <string name="subtitleLogin">El gol está en la organizacion</string>
+    <string name="empty_email">Ingresa un email</string>
+    <string name="empty_password">Ingresa una contraseña</string>
+    <string name="invalidLogin">Email o contraseña incorrecta</string>
+    <string name="googleLogin">GOOGLE</string>
+
+    // Sign in
+    <string name="subtitleSignin">Completá con tus datos</string>
+    <string name="firstName">Nombre</string>
+    <string name="lastName">Apellido</string>
+    <string name="dateOfBirth">Fecha de nacimiento</string>
+    <string name="phoneNumber">Teléfono</string>
+    <string name="address">Calle</string>
+    <string name="number">Nro</string>
+    <string name="confirmPassword">Confirmar contraseña</string>
+    <string name="terms">Aceptar términos y condiciones</string>
+    <string name="btnSignUp">Registrarse</string>
+
+    // Home
+    <string name="btn_amigos">Lista de Amigos</string>
+    <string name="btn_partido">Nuevo Partido</string>
+    <string name="btn_canchas">Lista de Canchas</string>
+
+    // Side Menu
+    <string name="menu_welcome">Bienvenido </string>
+    <string name="menu_rol">Usuario</string>
+    <string name="menu_partidos">Partidos</string>
+    <string name="menu_canchas">Canchas</string>
+    <string name="menu_amigos">Amigos</string>
+    <string name="menu_equipos">Mis equipos</string>
+    <string name="menu_ayuda">Ayuda</string>
+    <string name="menu_ajustes">Ajustes</string>
+    <string name="menu_tema">Tema oscuro</string>
+    <string name="menu_signout">Cerrar sesión</string>
+
+    // Bottom Bar Menu
+    <string name="home">HOME</string>
+    <string name="search">BUSCAR</string>
+    <string name="notif">NOTIFICACIONES</string>
+    <string name="profile">PERFIL</string>
+
+    // Edit Profile Dialog
+    <string name="editMode">Modo vista/edicion</string>
+    <string name="btn_save">Guardar</string>
+
+    //Admin
+    <string name="admin">Bienvenido ADMINISTRADOR</string>
+    <string name="reportes">Reportes</string>
+    <string name="modificaciones">Modificaciones</string>
+    <string name="altas_bajas">Cuentas ABM</string>
+
+
+</resources>
