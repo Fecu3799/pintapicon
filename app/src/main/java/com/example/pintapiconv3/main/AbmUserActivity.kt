@@ -12,7 +12,7 @@ import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.utils.UserAdapter
 
-class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener {
+class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener, NewUserDialog.UserCreationListener {
 
     private lateinit var userAdapter: UserAdapter
 
@@ -54,7 +54,8 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
         }
 
         btnAgregarUsuario.setOnClickListener {
-
+            val dialog = NewUserDialog()
+            dialog.show(supportFragmentManager, "NewUserDialog")
         }
 
         btn_atras.setOnClickListener {
@@ -73,5 +74,9 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
                 break
             }
         }
+    }
+
+    override fun onUserCreated(newUser: User) {
+
     }
 }
