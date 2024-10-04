@@ -11,6 +11,9 @@ import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.utils.UserAdapter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener, NewUserDialog.UserCreationListener {
 
@@ -77,6 +80,8 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
     }
 
     override fun onUserCreated(newUser: User) {
-
+        CoroutineScope(Dispatchers.IO).launch {
+            sqlServerHelper.addUser(newUser)
+        }
     }
 }

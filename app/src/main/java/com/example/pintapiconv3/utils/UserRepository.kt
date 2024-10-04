@@ -342,7 +342,7 @@ class UserRepository {
         apellido: String,
         fecha_nacimiento: String?,
         telefono: String,
-        fecha_creacion:String,
+        fecha_creacion: String,
         idDireccion: Int,
         idEstado: Int,
         idGenero: Int,

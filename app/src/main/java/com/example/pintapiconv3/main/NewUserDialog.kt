@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Spinner
@@ -35,6 +36,9 @@ class NewUserDialog : DialogFragment() {
     private lateinit var userGender: Spinner
     private lateinit var userSkill : Spinner
     private lateinit var userPosition : Spinner
+
+    private lateinit var btn_save: Button
+    private lateinit var btn_cancel: Button
 
     private var userCreationListener: UserCreationListener? = null
     private val sqlServerHelper = SQLServerHelper()
@@ -67,6 +71,14 @@ class NewUserDialog : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         initViews()
         loadSpinners()
+
+        btn_save.setOnClickListener {
+            saveUser()
+        }
+
+        btn_cancel.setOnClickListener {
+            dismiss()
+        }
     }
 
     private fun initViews() {
@@ -85,6 +97,12 @@ class NewUserDialog : DialogFragment() {
         userGender = view!!.findViewById(R.id.spner_userGender)
         userSkill = view!!.findViewById(R.id.spner_userSkill)
         userPosition = view!!.findViewById(R.id.spner_userPosition)
+
+        btn_save = view!!.findViewById(R.id.btn_save)
+        btn_cancel = view!!.findViewById(R.id.btn_cancel)
+
+        userId.setText((sqlServerHelper.getLastUserId() + 1).toString())
+        userId.isEnabled = false
     }
 
     private fun loadSpinners() {
@@ -115,8 +133,30 @@ class NewUserDialog : DialogFragment() {
     }
 
     private fun saveUser() {
+        val newUser = User (
+            id = userId.text.toString().toInt(),
+            email = userEmail.text.toString(),
+            password = userPassword.text.toString(),
+            nombre = userName.text.toString(),
+            apellido = userLastName.text.toString(),
+            fechaNacimiento = userDateOfBirth.text.toString(),
+            telefono = userPhoneNumber.text.toString(),
+            idDireccion = 0,
+            calle = userStreet.text.toString(),
+            numero = userStreetNumber.text.toString().toInt(),
+            idBarrio = userHood.selectedItemPosition + 1,
+            barrio = userHood.selectedItem.toString(),
+            localidad = "",
+            provincia = "",
+            pais = "",
+            estado = if(userState.selectedItemPosition == 4) 13 else userState.selectedItemPosition + 1,
+            genero = userGender.selectedItemPosition + 1,
+            habilidad = userSkill.selectedItemPosition + 1,
+            posicion = userPosition.selectedItemPosition + 1,
+            isAdmin = if(userRol.checkedRadioButtonId == R.id.rb_admin) 1 else 0
+        )
 
-
+        userCreationListener?.onUserCreated(newUser)
+        dismiss()
     }
-
 }

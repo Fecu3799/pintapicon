@@ -1,6 +1,10 @@
 package com.example.pintapiconv3.database
 
 import com.example.pintapiconv3.models.User
+import com.example.pintapiconv3.utils.Utils
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SQLServerHelper {
 
@@ -203,5 +207,93 @@ class SQLServerHelper {
         }
 
         return userList
+    }
+
+    fun getLastUserId(): Int {
+        var lastId = 0
+        val query = "SELECT MAX(id) FROM cuentas"
+
+        try {
+            val conn = DBConnection.getConnection()
+            val statement = conn?.createStatement()
+            val resultSet = statement?.executeQuery(query)
+
+            if(resultSet?.next() == true) {
+                lastId = resultSet.getInt(1)
+            }
+
+            resultSet?.close()
+            statement?.close()
+            conn?.close()
+
+            return lastId
+            } catch (e: Exception) {
+                e.printStackTrace()
+        }
+        return 0
+    }
+
+    fun addUser(user: User): Boolean {
+        val query1 = "INSERT INTO direcciones (calle, numero, idBarrio) VALUES (?, ?, ?)"
+        val query2 = "SELECT MAX(id) FROM direcciones"
+        val query3 = """
+            INSERT INTO cuentas (email, contraseña, nombre, apellido, fecha_nacimiento, telefono, fecha_creacion, 
+            ultimo_acceso, isAdmin, idDireccion, idEstado, idGenero, idHabilidad, idPosicion, codigo_verificacion)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """.trimIndent()
+
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val fechaCreacion = dateFormat.format(Date()).toString()
+
+        var verificationCode = Utils.generateVerificationCode()
+
+        try {
+            val conn = DBConnection.getConnection()
+
+            val preparedStatement1 = conn?.prepareStatement(query1)
+            preparedStatement1?.setString(1, user.calle)
+            preparedStatement1?.setInt(2, user.numero)
+            preparedStatement1?.setInt(3, user.idBarrio)
+            preparedStatement1?.executeUpdate()
+
+            val statement = conn?.createStatement()
+            val resultSet2 = statement?.executeQuery(query2)
+            var idDireccion = 0
+            if(resultSet2?.next() == true) {
+                idDireccion = resultSet2.getInt(1)
+            } else {
+                resultSet2?.close()
+                statement?.close()
+                conn?.close()
+                return false
+            }
+
+            val preparedStatement2 = conn.prepareStatement(query3)
+            preparedStatement2?.setString(1, user.email)
+            preparedStatement2?.setString(2, Utils.hashPassword(user.password))
+            preparedStatement2?.setString(3, user.nombre)
+            preparedStatement2?.setString(4, user.apellido)
+            preparedStatement2?.setString(5, user.fechaNacimiento)
+            preparedStatement2?.setString(6, user.telefono)
+            preparedStatement2?.setString(7, fechaCreacion)
+            preparedStatement2?.setNull(8, java.sql.Types.DATE)
+            preparedStatement2?.setInt(9, user.isAdmin)
+            preparedStatement2?.setInt(10, idDireccion)
+            preparedStatement2?.setInt(11, user.estado)
+            preparedStatement2?.setInt(12, user.genero)
+            preparedStatement2?.setInt(13, user.habilidad)
+            preparedStatement2?.setInt(14, user.posicion)
+            val resultSet3 = preparedStatement2?.executeUpdate()
+
+            resultSet2.close()
+            statement.close()
+            conn.close()
+
+            return resultSet3 != 0
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        }
     }
 }
