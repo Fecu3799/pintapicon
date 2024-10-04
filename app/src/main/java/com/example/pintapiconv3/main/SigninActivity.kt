@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
+import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.utils.UserRepository
 import com.example.pintapiconv3.utils.Utils.convertDateFormat
 import com.example.pintapiconv3.utils.Utils.generateVerificationCode
@@ -190,7 +191,7 @@ class SigninActivity : AppCompatActivity() {
                     val apellido = et_apellido.text.toString()
                     val email = et_email.text.toString()
                     val password = hashPassword(et_password.text.toString())
-                    val fechaNacimiento = convertDateFormat(et_fechaNacimiento.text.toString())
+                    val fechaNacimiento = convertDateFormat(et_fechaNacimiento.text.toString())!!
                     val telefono = et_telefono.text.toString()
                     val calle = et_calle.text.toString()
                     val numero = et_numero.text.toString().toInt()
@@ -207,11 +208,30 @@ class SigninActivity : AppCompatActivity() {
 
                     val idEstado = UserRepository.Companion.AccountStates.NOT_VERIFIED
 
-                    // Obtener la fecha actual en formato yyyy-MM-dd
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                    val fechaCreacion = dateFormat.format(Date()).toString()
-
                     val verificationCode = generateVerificationCode()
+
+                    val user = User(
+                        id = -1,
+                        email = email,
+                        password = password,
+                        nombre = nombre,
+                        apellido = apellido,
+                        fechaNacimiento = fechaNacimiento,
+                        telefono = telefono,
+                        idDireccion = -1,
+                        calle = calle,
+                        numero = numero,
+                        idBarrio = -1,
+                        barrio = "",
+                        localidad = "",
+                        provincia = "",
+                        pais = "",
+                        estado = idEstado,
+                        genero = idGenero,
+                        habilidad = idHabilidad,
+                        posicion = idPosicion,
+                        isAdmin = 0
+                    )
 
                     withContext(Dispatchers.IO) {
                         try {
@@ -219,16 +239,11 @@ class SigninActivity : AppCompatActivity() {
                             val idDireccion = userRepository.insertDireccion(calle, numero, idBarrio)
 
                             if (idDireccion != null) {
-                                val result = userRepository.insertAccount(
-                                    email, password, nombre, apellido, fechaNacimiento, telefono, fechaCreacion,
-                                    idDireccion, idEstado, idGenero, idHabilidad, idPosicion, verificationCode
-                                )
+                                val result = userRepository.insertAccount(user, idDireccion)
 
                                 withContext(Dispatchers.Main) {
                                     if (result) {
                                         sendVerificationEmail(email, verificationCode)
-                                        /*intent = Intent(this@SigninActivity, LoginActivity::class.java)
-                                        startActivity(intent)*/
                                         showToast("Registro exitoso")
                                         finish()
                                     } else {

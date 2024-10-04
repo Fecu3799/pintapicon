@@ -5,11 +5,15 @@ import android.util.Log
 import com.example.pintapiconv3.database.DBConnection
 import com.example.pintapiconv3.models.LoginResult
 import com.example.pintapiconv3.models.User
+import com.example.pintapiconv3.utils.Utils.generateVerificationCode
 import com.example.pintapiconv3.utils.Utils.hashPassword
 import io.jsonwebtoken.ExpiredJwtException
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class UserRepository {
 
@@ -335,45 +339,38 @@ class UserRepository {
     }
 
     @Suppress("RedundantSuspendModifier")
-    suspend fun insertAccount (
-        email: String,
-        password: String,
-        nombre: String,
-        apellido: String,
-        fecha_nacimiento: String?,
-        telefono: String,
-        fecha_creacion: String,
-        idDireccion: Int,
-        idEstado: Int,
-        idGenero: Int,
-        idHabilidad: Int,
-        idPosicion: Int,
-        codigo_verificacion: String
-    ): Boolean {
+    suspend fun insertAccount (user: User, idDireccion: Int): Boolean {
+
         val query = """
             INSERT INTO cuentas (email, contraseña, nombre, apellido, fecha_nacimiento, telefono, fecha_creacion, 
             ultimo_acceso, isAdmin, idDireccion, idEstado, idGenero, idHabilidad, idPosicion, codigo_verificacion)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
+        // Obtener la fecha actual en formato yyyy-MM-dd
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val fechaCreacion = dateFormat.format(Date()).toString()
+
+        val codigo_verificacion = generateVerificationCode()
+
         try {
             val conn = DBConnection.getConnection()
             val preparedStatement = conn?.prepareStatement(query)
 
-            preparedStatement?.setString(1, email)
-            preparedStatement?.setString(2, password)
-            preparedStatement?.setString(3, nombre)
-            preparedStatement?.setString(4, apellido)
-            preparedStatement?.setString(5, fecha_nacimiento)
-            preparedStatement?.setString(6, telefono)
-            preparedStatement?.setString(7, fecha_creacion)
+            preparedStatement?.setString(1, user.email)
+            preparedStatement?.setString(2, user.password)
+            preparedStatement?.setString(3, user.nombre)
+            preparedStatement?.setString(4, user.apellido)
+            preparedStatement?.setString(5, user.fechaNacimiento)
+            preparedStatement?.setString(6, user.telefono)
+            preparedStatement?.setString(7, fechaCreacion)
             preparedStatement?.setNull(8, java.sql.Types.DATE)
             preparedStatement?.setInt(9, 0)
             preparedStatement?.setInt(10, idDireccion)
-            preparedStatement?.setInt(11, idEstado)
-            preparedStatement?.setInt(12, idGenero)
-            preparedStatement?.setInt(13, idHabilidad)
-            preparedStatement?.setInt(14, idPosicion)
+            preparedStatement?.setInt(11, user.estado)
+            preparedStatement?.setInt(12, user.genero)
+            preparedStatement?.setInt(13, user.habilidad)
+            preparedStatement?.setInt(14, user.posicion)
             preparedStatement?.setString(15, codigo_verificacion)
 
             val resultSet = preparedStatement?.executeUpdate()
