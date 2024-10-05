@@ -1,6 +1,5 @@
 package com.example.pintapiconv3.main
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -29,13 +28,9 @@ import com.example.pintapiconv3.utils.Utils.setupHintOnFocusChangeListener
 import com.example.pintapiconv3.utils.Utils.setupPasswordVisibilityToggle
 import com.example.pintapiconv3.utils.Utils.showToast
 import com.example.pintapiconv3.utils.Utils.validateBirthDate
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class SigninActivity : AppCompatActivity() {
 
@@ -57,8 +52,6 @@ class SigninActivity : AppCompatActivity() {
         initViews()
 
         btn_atras.setOnClickListener {
-            /*val intent = Intent(this, LoginActivity::class.java)
-            startActivity(intent)*/
             finish()
         }
 
@@ -176,29 +169,22 @@ class SigninActivity : AppCompatActivity() {
     private fun registerUser() {
 
         lifecycleScope.launch {
+            val email = et_email.text.toString()
             val error = withContext(Dispatchers.Default) { validateSignin() }
             if (error.isNotEmpty()) {
                 showToast(error)
             } else {
-                val email = et_email.text.toString()
                 val emailExists = withContext(Dispatchers.IO) { userRepository.emailExists(email) }
                 if(emailExists)
                     showToast("El correo ya se encuentra registrado")
                 else if(!isValidPassword(et_password.text.toString()))
                     showToast("La contraseña debe contener mínimo 8 caracteres, una mayúscula, una minúscula y un número")
                 else {
-                    val nombre = et_nombre.text.toString()
-                    val apellido = et_apellido.text.toString()
-                    val email = et_email.text.toString()
-                    val password = hashPassword(et_password.text.toString())
-                    val fechaNacimiento = convertDateFormat(et_fechaNacimiento.text.toString())!!
-                    val telefono = et_telefono.text.toString()
+                    val verificationCode = generateVerificationCode()
+
                     val calle = et_calle.text.toString()
                     val numero = et_numero.text.toString().toInt()
-
                     val idBarrio = sqlServerHelper.getBarrios()[spner_barrio.selectedItemPosition - 1].first
-                    val idPosicion = sqlServerHelper.getPosiciones()[spner_posicion.selectedItemPosition - 1].first
-                    val idHabilidad = sqlServerHelper.getHabilidades()[spner_habilidad.selectedItemPosition - 1].first
 
                     val idGenero = when (rg_genero.checkedRadioButtonId) {
                         R.id.rb_masculino -> UserRepository.Companion.Gender.MALE
@@ -206,18 +192,14 @@ class SigninActivity : AppCompatActivity() {
                         else -> UserRepository.Companion.Gender.OTHER
                     }
 
-                    val idEstado = UserRepository.Companion.AccountStates.NOT_VERIFIED
-
-                    val verificationCode = generateVerificationCode()
-
                     val user = User(
                         id = -1,
                         email = email,
-                        password = password,
-                        nombre = nombre,
-                        apellido = apellido,
-                        fechaNacimiento = fechaNacimiento,
-                        telefono = telefono,
+                        password = hashPassword(et_password.text.toString()),
+                        nombre = et_nombre.text.toString(),
+                        apellido = et_apellido.text.toString(),
+                        fechaNacimiento = convertDateFormat(et_fechaNacimiento.text.toString())!!,
+                        telefono = et_telefono.text.toString(),
                         idDireccion = -1,
                         calle = calle,
                         numero = numero,
@@ -226,10 +208,10 @@ class SigninActivity : AppCompatActivity() {
                         localidad = "",
                         provincia = "",
                         pais = "",
-                        estado = idEstado,
+                        estado = UserRepository.Companion.AccountStates.NOT_VERIFIED,
                         genero = idGenero,
-                        habilidad = idHabilidad,
-                        posicion = idPosicion,
+                        habilidad = sqlServerHelper.getHabilidades()[spner_habilidad.selectedItemPosition - 1].first,
+                        posicion = sqlServerHelper.getPosiciones()[spner_posicion.selectedItemPosition - 1].first,
                         isAdmin = 0
                     )
 

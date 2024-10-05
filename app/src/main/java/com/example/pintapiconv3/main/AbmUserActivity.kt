@@ -7,13 +7,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.utils.UserAdapter
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener, NewUserDialog.UserCreationListener {
 
@@ -80,8 +81,10 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
     }
 
     override fun onUserCreated(newUser: User) {
-        CoroutineScope(Dispatchers.IO).launch {
-            sqlServerHelper.addUser(newUser)
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                sqlServerHelper.addUser(newUser)
+            }
         }
     }
 }

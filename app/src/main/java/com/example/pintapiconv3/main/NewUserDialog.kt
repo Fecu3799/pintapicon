@@ -10,14 +10,15 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Spinner
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
+import com.example.pintapiconv3.utils.UserRepository
+import com.example.pintapiconv3.utils.Utils.isValidEmail
+import com.example.pintapiconv3.utils.Utils.isValidPassword
+import com.example.pintapiconv3.utils.Utils.validateBirthDate
 
 class NewUserDialog : DialogFragment() {
 
@@ -36,23 +37,17 @@ class NewUserDialog : DialogFragment() {
     private lateinit var userGender: Spinner
     private lateinit var userSkill : Spinner
     private lateinit var userPosition : Spinner
-
     private lateinit var btn_save: Button
     private lateinit var btn_cancel: Button
 
     private var userCreationListener: UserCreationListener? = null
     private val sqlServerHelper = SQLServerHelper()
+    private val userRepository = UserRepository()
 
     // Permite saber cuándo se ha creado un nuevo usuario y avisar a AbmUserActivity para actualizar la lista
     interface UserCreationListener {
         fun onUserCreated(newUser: User)
     }
-
-    /*companion object {
-        fun newInstance(): NewUserDialog {
-            return NewUserDialog()
-        }
-    }*/
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -73,7 +68,12 @@ class NewUserDialog : DialogFragment() {
         loadSpinners()
 
         btn_save.setOnClickListener {
-            saveUser()
+            val error = validateFields()
+            if (error.isEmpty()) {
+                saveUser()
+            } else {
+                Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+            }
         }
 
         btn_cancel.setOnClickListener {
@@ -106,11 +106,11 @@ class NewUserDialog : DialogFragment() {
     }
 
     private fun loadSpinners() {
-        val barrios = sqlServerHelper.getBarrios() ?: emptyList()
-        val estados = sqlServerHelper.getEstadosCuenta() ?: emptyList()
-        val generos = sqlServerHelper.getGeneros() ?: emptyList()
-        val habilidades = sqlServerHelper.getHabilidades() ?: emptyList()
-        val posiciones = sqlServerHelper.getPosiciones() ?: emptyList()
+        val barrios = sqlServerHelper.getBarrios()
+        val estados = sqlServerHelper.getEstadosCuenta()
+        val generos = sqlServerHelper.getGeneros()
+        val habilidades = sqlServerHelper.getHabilidades()
+        val posiciones = sqlServerHelper.getPosiciones()
 
         setSpinners(userHood, barrios, 1)
         setSpinners(userState, estados, 1)
@@ -132,7 +132,43 @@ class NewUserDialog : DialogFragment() {
         }
     }
 
+    private fun validateFields(): String {
+
+        var errormessage = ""
+
+        if (userName.text.isEmpty()) {
+            errormessage = "Por favor ingrese su nombre"
+        } else if (userLastName.text.isEmpty()) {
+            errormessage = "Por favor ingrese su apellido"
+        } else if (userEmail.text.isEmpty()) {
+            errormessage = "Por favor ingrese su correo"
+        } else if (!isValidEmail(userEmail.text.toString())) {
+            errormessage = "Por favor ingrese un correo válido"
+        } else if (userRepository.emailExists(userEmail.text.toString())) {
+            errormessage = "El email ya se encuentra registrado"
+        } else if (userPassword.text.isEmpty()) {
+            errormessage = "Por favor ingrese una contraseña"
+        } else if (!isValidPassword(userPassword.text.toString())) {
+            errormessage = "Por favor ingrese una contraseña válida"
+        } else if (userDateOfBirth.text.isEmpty()) {
+            errormessage = "Por favor ingrese su fecha de nacimiento"
+        } else if(validateBirthDate(userDateOfBirth.text.toString()) != "") {
+            errormessage = validateBirthDate(userDateOfBirth.text.toString())
+        } else if (userPhoneNumber.text.isEmpty()) {
+            errormessage = "Por favor ingrese su telefono"
+        } else if (userRol.checkedRadioButtonId == -1) {
+            errormessage = "Por favor seleccione un rol"
+        }else if (userStreet.text.isEmpty()) {
+            errormessage = "Por favor ingrese su calle"
+        } else if (userStreetNumber.text.isEmpty()) {
+            errormessage = "Por favor ingrese su numero"
+        }
+
+        return errormessage
+    }
+
     private fun saveUser() {
+
         val newUser = User (
             id = userId.text.toString().toInt(),
             email = userEmail.text.toString(),
