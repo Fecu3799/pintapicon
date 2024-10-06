@@ -15,5 +15,7 @@
     <color name="lessdarkergreen">#55075E60</color>
     <color name="lessgold">#99EACC23</color>
     <color name="transparent">#33FFFFFF</color>
+    <color name="lightgrey">#33464648</color>
+
 
 </resources>

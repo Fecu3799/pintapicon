@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.models.User
 
@@ -15,7 +16,8 @@ class UserAdapter(context: Context, users: List<User>): ArrayAdapter<User>(conte
     private class ViewHolder(view: View) {
         val userName: TextView = view.findViewById(R.id.tv_userName)
         val userEmail: TextView = view.findViewById(R.id.tv_userEmail)
-        val userRol: TextView = view.findViewById(R.id.tv_userRol)
+        val userRol: TextView = view.findViewById(R.id.tv_userRole)
+        val userState: TextView = view.findViewById(R.id.tv_userState)
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -38,6 +40,19 @@ class UserAdapter(context: Context, users: List<User>): ArrayAdapter<User>(conte
         holder.userName.text = user?.nombre
         holder.userEmail.text = user?.email
         holder.userRol.text = if (user?.isAdmin == 0) "Usuario" else "Administrador"
+        holder.userState.text = when (user?.estado) {
+            UserRepository.Companion.AccountStates.NOT_VERIFIED -> "No verificada"
+            UserRepository.Companion.AccountStates.VERIFIED -> "Verificada"
+            UserRepository.Companion.AccountStates.DELETED -> "Eliminada"
+            UserRepository.Companion.AccountStates.SUSPENDED -> "Suspendida"
+            UserRepository.Companion.AccountStates.BLOCKED -> "Bloqueada"
+            else -> "Desconocido"
+        }
+
+        if(user?.estado == UserRepository.Companion.AccountStates.DELETED)
+            view.setBackgroundColor(ContextCompat.getColor(context, R.color.lightgrey))
+        else
+            view.setBackgroundColor(ContextCompat.getColor(context, R.color.white))
 
         return view
     }

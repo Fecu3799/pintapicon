@@ -12,6 +12,7 @@ import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.utils.UserAdapter
+import com.example.pintapiconv3.utils.UserRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -22,6 +23,8 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
 
     private lateinit var btn_atras: View
     private lateinit var btnAgregarUsuario: View
+
+    private lateinit var userListView: ListView
 
     val sqlServerHelper = SQLServerHelper()
 
@@ -45,11 +48,12 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
         // Obtener la lista de usuarios de la BD
         val users = sqlServerHelper.getUsers()
 
-        userAdapter = UserAdapter(this, users)
+        // Ordenar las cuentas por estado
+        val sortedUsers = users.sortedBy { it.estado == UserRepository.Companion.AccountStates.DELETED}
 
         // Configurar el adapter del ListView
-
-        val userListView = findViewById<ListView>(R.id.listViewUsuarios)
+        userAdapter = UserAdapter(this, sortedUsers)
+        userListView = findViewById(R.id.listViewUsuarios)
         userListView.adapter = userAdapter
 
         userListView.setOnItemClickListener { parent, view, position, id ->
@@ -72,15 +76,26 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
 
     override fun onUserUpdated(updatedUser: User) {
 
-        for(i in 0 until userAdapter.count) {
-            val user = userAdapter.getItem(i)
-            if(user?.id == updatedUser.id) {
-                userAdapter.remove(user)
-                userAdapter.insert(updatedUser, i)
-                userAdapter.notifyDataSetChanged()
-                break
-            }
+        val updatedList = (0 until userAdapter.count).mapNotNull { userAdapter.getItem(it) }.toMutableList()
+
+        // Buscar el usuario actualizado en la lista
+        val userIndex = updatedList.indexOfFirst { it.id == updatedUser.id }
+
+        if (userIndex != -1) {
+            // Reemplazar el usuario en la lista con el actualizado
+            updatedList[userIndex] = updatedUser
         }
+
+        // Reordenar la lista para que los usuarios eliminados estén al final
+        val sortedUsers = updatedList.sortedBy { it.estado == UserRepository.Companion.AccountStates.DELETED }
+
+        // Crear un nuevo adaptador con la lista actualizada
+        val newUserAdapter = UserAdapter(this, sortedUsers)
+
+        userListView.adapter = newUserAdapter
+
+        // Notificar los cambios al adapter
+        userAdapter = newUserAdapter
     }
 
     override fun onUserCreated(newUser: User) {

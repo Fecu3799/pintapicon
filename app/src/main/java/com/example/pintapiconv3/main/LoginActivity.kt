@@ -74,7 +74,7 @@ class LoginActivity : AppCompatActivity() {
                 showToast("El email debe ser válido")
             else if (!userRepository.emailExists(et_email.text.toString()))
                 showToast("El email no se encuentra registrado")
-            else if(sendPasswordResetCode(et_email.text.toString()))
+            else if(sendResetCode(et_email.text.toString()))
                     showVerificationCodeDialog(et_email.text.toString())
         }
 
@@ -145,7 +145,7 @@ class LoginActivity : AppCompatActivity() {
                             finish()
                         }
                         UserRepository.Companion.AccountStates.NOT_VERIFIED -> showVerificationDialog(result.email)
-                        UserRepository.Companion.AccountStates.DELETED -> showToast("Tu cuenta se encuentra eliminada. Comunicarse con Soporte")
+                        UserRepository.Companion.AccountStates.DELETED -> showReactivateDialog(result.email)
                         UserRepository.Companion.AccountStates.SUSPENDED -> showToast("Tu cuenta se encuentra suspendida. Comunicarse con Soporte")
                         UserRepository.Companion.AccountStates.BLOCKED -> showToast("Tu cuenta se encuentra bloqueada por superar el número máximo de intentos. Comunicarse con Soporte")
                     }
@@ -207,7 +207,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // Envia un codigo al mail ingresado
-    private fun sendPasswordResetCode(email: String): Boolean {
+    private fun sendResetCode(email: String): Boolean {
         val code = generateVerificationCode()
         val query = "UPDATE cuentas SET codigo_reset = ? WHERE email = ?"
 
@@ -240,7 +240,7 @@ class LoginActivity : AppCompatActivity() {
         builder.setPositiveButton("Verificar") { dialog, _ ->
             val verificationCode = input.text.toString().trim()
             if (verificationCode.isNotEmpty()) {
-                verifyResetCode(email, verificationCode)
+                verifyResetCode(email, verificationCode, 1)
             } else {
                 showToast("Por favor ingrese el código de verificación")
             }
@@ -253,14 +253,19 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // Verifica que el codigo es correcto
-    private fun verifyResetCode(email: String, enteredCode: String) {
+    private fun verifyResetCode(email: String, enteredCode: String, type: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
             val isVerified = userRepository.verifyPasswordResetCode(email, enteredCode)
 
             withContext(Dispatchers.Main) {
-                if (isVerified) {
-                    showToast("Código verificado correctamente")
-                    showNewPasswordDialog(email) // Mostrar el diálogo para establecer nueva contraseña
+                if(isVerified) {
+                    if(type == 1) {
+                        showToast("Código verificado correctamente")
+                        showNewPasswordDialog(email) // Mostrar el diálogo para establecer nueva contraseña
+                    } else {
+                        userRepository.reactivateAccount(email)
+                        showToast("Código verificado. Tu cuenta se ha reactivado correctamente")
+                    }
                 } else {
                     showToast("Código incorrecto o expirado")
                 }
@@ -306,6 +311,49 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+
+    // Dialogo de reactivacion de cuenta
+    private fun showReactivateDialog(email: String) {
+        val builder = AlertDialog.Builder(this)
+
+        builder.setTitle("Reactivar cuenta")
+        builder.setMessage("La cuenta asociada al correo $email se encuentra eliminada. ¿Desea reactivarla?")
+
+        builder.setPositiveButton("Reactivar") { dialog, which ->
+            sendResetCode(email)
+            showReactivationDialog(email)
+        }
+        builder.setNegativeButton("Cancelar") { dialog, which ->
+            dialog.dismiss()
+        }
+
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    private fun showReactivationDialog(email: String) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Confirmar reactivacion de cuenta")
+
+        val input = EditText(this)
+        input.hint = "Ingresa el código de verificación enviado a tu correo"
+        builder.setView(input)
+
+        builder.setPositiveButton("Verificar") { dialog, _ ->
+            val verificationCode = input.text.toString().trim()
+            if (verificationCode.isNotEmpty()) {
+                verifyResetCode(email, verificationCode, 2)
+            } else {
+                showToast("Por favor ingrese el código de verificación")
+            }
+            dialog.dismiss()
+        }
+        builder.setNegativeButton("Cancelar") { dialog, _ ->
+            dialog.cancel()
+        }
+        builder.show()
     }
 }
 

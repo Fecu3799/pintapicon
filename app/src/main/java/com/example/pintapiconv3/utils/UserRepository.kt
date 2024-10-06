@@ -475,6 +475,23 @@ class UserRepository {
         }
     }
 
+    fun reactivateAccount(email: String) {
+        val conn: Connection?
+        val query = "UPDATE cuentas SET idEstado = 2, codigo_reset = NULL WHERE email = ?"
+
+        try {
+            conn = DBConnection.getConnection()
+            val preparedStatement = conn?.prepareStatement(query)
+            preparedStatement?.setString(1, email)
+            preparedStatement?.executeQuery()
+
+            preparedStatement?.close()
+            conn?.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     fun updateUserDataInDB(user: User): Result<Unit> {
             val conn = DBConnection.getConnection()
             try {
