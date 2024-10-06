@@ -1,8 +1,8 @@
 package com.example.pintapiconv3.main
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.widget.ListView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -10,13 +10,19 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
-import com.example.pintapiconv3.utils.UserAdapter
-import kotlin.math.log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 
 class MainActivityAdmin : AppCompatActivity() {
 
+    private lateinit var adminName: TextView
     private lateinit var btn_logout: TextView
     private lateinit var btn_cuentasABM: TextView
+    private var userName: String = ""
+
+    private val sqlServerHelper = SQLServerHelper()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +36,9 @@ class MainActivityAdmin : AppCompatActivity() {
 
         btn_cuentasABM = findViewById(R.id.btn_cuentasABM)
         btn_logout = findViewById(R.id.btn_logout)
+        adminName = findViewById(R.id.tv_nombre)
+
+        adminName.text = loadUserName()
 
         btn_cuentasABM.setOnClickListener {
             val intent = Intent(this, AbmUserActivity::class.java)
@@ -46,6 +55,28 @@ class MainActivityAdmin : AppCompatActivity() {
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
         finish()
+    }
+
+    private fun loadUserName(): String {
+        val loginData = getLoginData()
+        if(loginData != null) {
+            userName = sqlServerHelper.getUserName(loginData.first, loginData.second)
+        }
+        return userName
+    }
+
+    private fun getLoginData(): Pair<String, String>? {
+        val sharedPref = getSharedPreferences("userData", Context.MODE_PRIVATE)
+        val email = sharedPref.getString("userEmail", null)
+        val password = sharedPref.getString("userPassword", null)
+
+        return if (email != null && password != null) {
+            email to password
+        } else {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            null
+        }
     }
 
 }

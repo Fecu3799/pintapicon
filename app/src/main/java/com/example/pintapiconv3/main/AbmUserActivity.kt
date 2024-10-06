@@ -36,6 +36,9 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
         }
 
 
+        // TO DO: Actualizar el listView al agregar un nuevo usuario
+
+
         btn_atras = findViewById(R.id.btn_atras)
         btnAgregarUsuario = findViewById(R.id.btnAgregarUsuario)
 
@@ -86,5 +89,7 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
                 sqlServerHelper.addUser(newUser)
             }
         }
+        userAdapter.add(newUser)
+        userAdapter.notifyDataSetChanged()
     }
 }

@@ -235,6 +235,33 @@ class SQLServerHelper {
         return 0
     }
 
+    fun getUserName(email: String, password: String): String {
+
+        val conn = DBConnection.getConnection()
+        var userName = ""
+
+        try {
+            val query = "SELECT nombre FROM cuentas WHERE email = ? AND contraseña = ?"
+
+            val statement = conn?.prepareStatement(query)
+            statement?.setString(1, email)
+            statement?.setString(2, password)
+            val resultSet = statement?.executeQuery()
+
+            if(resultSet?.next() == true)
+                userName = resultSet.getString("nombre")
+
+            return userName
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("Database Error", "Ocurrió un error: ${e.message}")
+            return userName
+        }
+        finally {
+            conn?.close()
+        }
+    }
 
     suspend fun addUser(user: User): Boolean {
         val query1 = "INSERT INTO direcciones (calle, numero, idBarrio) VALUES (?, ?, ?)"

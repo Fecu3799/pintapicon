@@ -133,6 +133,7 @@ class LoginActivity : AppCompatActivity() {
                 userRepository.saveSession(this@LoginActivity, result.email)
                 if(result.isAdmin == 1) {
                     userRepository.insertLastAccess(result.email)
+                    userRepository.saveUserData(this@LoginActivity, result.email, result.password)
                     startActivity(Intent(this@LoginActivity, MainActivityAdmin::class.java))
                     finish()
                 } else {

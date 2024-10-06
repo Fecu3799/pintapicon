@@ -37,7 +37,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var userViewModel: UserViewModel
     private lateinit var binding: ActivityMainBinding
     private lateinit var userRepository: UserRepository
-    private var sqlServerHelper = SQLServerHelper()
     private var dialog: Dialog? = null
     private var isSessionDialogShown = false
 
