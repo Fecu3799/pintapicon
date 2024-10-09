@@ -15,9 +15,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.pintapiconv3.R
-import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.databinding.ActivityMainBinding
-import com.example.pintapiconv3.utils.UserRepository
+import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.UserViewModel
 import com.example.pintapiconv3.utils.UserViewModelFactory
 import com.example.pintapiconv3.main.fragments.HomeFragment
@@ -36,9 +35,11 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var userViewModel: UserViewModel
     private lateinit var binding: ActivityMainBinding
-    private lateinit var userRepository: UserRepository
+
     private var dialog: Dialog? = null
     private var isSessionDialogShown = false
+
+    private val userRepository = UserRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +47,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        userRepository = UserRepository()
         val viewModelFactory = UserViewModelFactory(userRepository)
         userViewModel = ViewModelProvider(this, viewModelFactory)[UserViewModel::class.java]
 
@@ -79,26 +79,21 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        binding.navMenu.setNavigationItemSelectedListener {
-            handleNavigationItem(it.itemId)
+        binding.navMenu.setNavigationItemSelectedListener { item, ->
+            when (item.itemId) {
+                R.id.item_partidos -> { /* Handle partidos action */ }
+                R.id.item_canchas -> { /* Handle canchas action */ }
+                R.id.item_equipos -> { /* Handle equipos action */ }
+                R.id.item_amigos -> { /* Handle amigos action */ }
+                R.id.item_ayuda -> { /* Handle ayuda action */ }
+                R.id.item_ajustes -> { /* Handle ajustes action */ }
+                R.id.item_signout -> logoutUser()
+            }
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
 
     }
-
-    private fun handleNavigationItem(itemId: Int) {
-        when (itemId) {
-            R.id.item_partidos -> { /* Handle partidos action */ }
-            R.id.item_canchas -> { /* Handle canchas action */ }
-            R.id.item_equipos -> { /* Handle equipos action */ }
-            R.id.item_amigos -> { /* Handle amigos action */ }
-            R.id.item_ayuda -> { /* Handle ayuda action */ }
-            R.id.item_ajustes -> { /* Handle ajustes action */ }
-            R.id.item_signout -> logoutUser()
-        }
-        binding.drawerLayout.closeDrawer(GravityCompat.START)
-    }
-
 
     private fun setupNavigation() {
         val headerView = binding.navMenu.getHeaderView(0)

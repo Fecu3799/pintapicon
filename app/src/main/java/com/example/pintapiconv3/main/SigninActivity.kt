@@ -17,7 +17,8 @@ import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
-import com.example.pintapiconv3.utils.UserRepository
+import com.example.pintapiconv3.repository.BarrioRepository
+import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.Utils.convertDateFormat
 import com.example.pintapiconv3.utils.Utils.generateVerificationCode
 import com.example.pintapiconv3.utils.Utils.hashPassword
@@ -34,8 +35,9 @@ import kotlinx.coroutines.withContext
 
 class SigninActivity : AppCompatActivity() {
 
-    private lateinit var userRepository: UserRepository
-    private lateinit var sqlServerHelper: SQLServerHelper
+    private val userRepository = UserRepository()
+    private val barrioRepository = BarrioRepository()
+    private val sqlServerHelper = SQLServerHelper()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,8 +49,6 @@ class SigninActivity : AppCompatActivity() {
             insets
         }
 
-        userRepository = UserRepository()
-        sqlServerHelper = SQLServerHelper()
         initViews()
 
         btn_atras.setOnClickListener {
@@ -99,7 +99,7 @@ class SigninActivity : AppCompatActivity() {
         setupPasswordVisibilityToggle(this, et_password)
         setupPasswordVisibilityToggle(this, et_password2)
 
-        loadSpinner(spner_barrio, "Barrio", sqlServerHelper.getBarrios().map { it.second })
+        loadSpinner(spner_barrio, "Barrio", barrioRepository.getBarrios().map { it.second })
         loadSpinner(spner_localidad, "Localidad", listOf("Córdoba Capital"))
         loadSpinner(spner_provincia, "Provincia", listOf("Córdoba"))
         loadSpinner(spner_pais, "País", listOf("Argentina"))
@@ -184,7 +184,7 @@ class SigninActivity : AppCompatActivity() {
 
                     val calle = et_calle.text.toString()
                     val numero = et_numero.text.toString().toInt()
-                    val idBarrio = sqlServerHelper.getBarrios()[spner_barrio.selectedItemPosition - 1].first
+                    val idBarrio = barrioRepository.getBarrios()[spner_barrio.selectedItemPosition - 1].first
 
                     val idGenero = when (rg_genero.checkedRadioButtonId) {
                         R.id.rb_masculino -> UserRepository.Companion.Gender.MALE
@@ -203,7 +203,7 @@ class SigninActivity : AppCompatActivity() {
                         idDireccion = -1,
                         calle = calle,
                         numero = numero,
-                        idBarrio = -1,
+                        idBarrio = idBarrio,
                         barrio = "",
                         localidad = "",
                         provincia = "",

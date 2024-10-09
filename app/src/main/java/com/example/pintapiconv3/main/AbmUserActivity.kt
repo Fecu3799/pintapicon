@@ -12,7 +12,7 @@ import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.utils.UserAdapter
-import com.example.pintapiconv3.utils.UserRepository
+import com.example.pintapiconv3.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -23,10 +23,9 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
 
     private lateinit var btn_atras: View
     private lateinit var btnAgregarUsuario: View
-
     private lateinit var userListView: ListView
 
-    val sqlServerHelper = SQLServerHelper()
+    private val userRepository = UserRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,15 +37,11 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
             insets
         }
 
-
-        // TO DO: Actualizar el listView al agregar un nuevo usuario
-
-
         btn_atras = findViewById(R.id.btn_atras)
         btnAgregarUsuario = findViewById(R.id.btnAgregarUsuario)
 
-        // Obtener la lista de usuarios de la BD
-        val users = sqlServerHelper.getUsers()
+        // Obtener todas las cuentas registradas en la BD
+        val users = userRepository.getAllUsers()
 
         // Ordenar las cuentas por estado
         val sortedUsers = users.sortedBy { it.estado == UserRepository.Companion.AccountStates.DELETED}
@@ -56,7 +51,7 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
         userListView = findViewById(R.id.listViewUsuarios)
         userListView.adapter = userAdapter
 
-        userListView.setOnItemClickListener { parent, view, position, id ->
+        userListView.setOnItemClickListener { _, _, position, _ ->
             val user = userAdapter.getItem(position)
             user?.let {
                 val dialog = UserDetailDialog.newInstance(it)
@@ -78,20 +73,19 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
 
         val updatedList = (0 until userAdapter.count).mapNotNull { userAdapter.getItem(it) }.toMutableList()
 
-        // Buscar el usuario actualizado en la lista
+        // Busca el usuario actualizado en la lista
         val userIndex = updatedList.indexOfFirst { it.id == updatedUser.id }
 
         if (userIndex != -1) {
-            // Reemplazar el usuario en la lista con el actualizado
+            // Reemplaza el usuario en la lista con el actualizado
             updatedList[userIndex] = updatedUser
         }
 
-        // Reordenar la lista para que los usuarios eliminados estén al final
+        // Reordena la lista
         val sortedUsers = updatedList.sortedBy { it.estado == UserRepository.Companion.AccountStates.DELETED }
 
         // Crear un nuevo adaptador con la lista actualizada
         val newUserAdapter = UserAdapter(this, sortedUsers)
-
         userListView.adapter = newUserAdapter
 
         // Notificar los cambios al adapter
@@ -101,7 +95,7 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
     override fun onUserCreated(newUser: User) {
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
-                sqlServerHelper.addUser(newUser)
+                userRepository.addUser(newUser)
             }
         }
         userAdapter.add(newUser)

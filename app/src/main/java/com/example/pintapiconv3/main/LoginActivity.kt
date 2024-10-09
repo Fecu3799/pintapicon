@@ -12,10 +12,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
-import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.database.DBConnection
-import com.example.pintapiconv3.models.LoginResult
-import com.example.pintapiconv3.utils.UserRepository
+import com.example.pintapiconv3.utils.LoginResult
+import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.Utils.generateVerificationCode
 import com.example.pintapiconv3.utils.Utils.hashPassword
 import com.example.pintapiconv3.utils.Utils.isValidEmail
@@ -37,8 +36,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var btn_restorePassword: TextView
     private lateinit var btn_signin: TextView
 
-    private lateinit var userRepository: UserRepository
-    private lateinit var sqlServerHelper: SQLServerHelper
+    private val userRepository = UserRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,9 +47,6 @@ class LoginActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-        userRepository = UserRepository()
-        sqlServerHelper = SQLServerHelper()
 
         initView()
 
@@ -108,7 +103,7 @@ class LoginActivity : AppCompatActivity() {
         else if (!isValidEmail(et_email.text.toString()))
             error_message += "El email debe ser válido"
         else if (!isValidPassword(et_password.text.toString()))
-            error_message += "La contraseña debe ser válida"
+            error_message += "La contraseña debe contener mínimo 8 caracteres, una mayúscula, una minúscula y un número"
         return error_message
     }
 
@@ -224,6 +219,7 @@ class LoginActivity : AppCompatActivity() {
             true
         } catch (e: Exception) {
             e.printStackTrace()
+            showToast("Error al enviar el codigo de verificacion. Intentelo nuevamente")
             false
         }
     }

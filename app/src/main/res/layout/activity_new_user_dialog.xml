@@ -3,8 +3,22 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="5dp">
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="15dp"
+            android:text="Campos con * son obligatorios"
+            android:gravity="center"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -15,13 +29,14 @@
             android:layout_width="150dp"
             android:layout_height="45dp"
             android:text="Identificador"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:drawableEnd="@drawable/ic_asterisk" />
 
         <EditText
             android:id="@+id/et_userId"
             android:layout_width="200dp"
             android:layout_height="45dp"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
 
     </LinearLayout>
 
@@ -34,7 +49,8 @@
             android:layout_width="150dp"
             android:layout_height="45dp"
             android:text="E-mail"
-            android:gravity="center" />
+            android:gravity="center"
+            android:drawableEnd="@drawable/ic_asterisk"/>
 
         <EditText
             android:id="@+id/et_userEmail"
@@ -53,7 +69,8 @@
             android:layout_width="150dp"
             android:layout_height="45dp"
             android:text="Contraseña"
-            android:gravity="center" />
+            android:gravity="center"
+            android:drawableEnd="@drawable/ic_asterisk"/>
 
         <EditText
             android:id="@+id/et_userPassword"
@@ -72,7 +89,8 @@
             android:layout_width="150dp"
             android:layout_height="45dp"
             android:text="Nombre"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:drawableEnd="@drawable/ic_asterisk"/>
 
         <EditText
             android:id="@+id/et_userName"
@@ -91,7 +109,8 @@
             android:layout_width="150dp"
             android:layout_height="45dp"
             android:text="Apellido"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:drawableEnd="@drawable/ic_asterisk"/>
 
         <EditText
             android:id="@+id/et_userLastName"
@@ -110,7 +129,8 @@
             android:layout_width="150dp"
             android:layout_height="45dp"
             android:text="Fecha de Nacimiento"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:drawableEnd="@drawable/ic_asterisk"/>
 
         <EditText
             android:id="@+id/et_userDateOfBirth"
@@ -130,7 +150,8 @@
             android:layout_width="150dp"
             android:layout_height="45dp"
             android:text="Telefono"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:drawableEnd="@drawable/ic_asterisk"/>
 
         <EditText
             android:id="@+id/et_userPhoneNumber"
@@ -150,7 +171,7 @@
             android:layout_width="150dp"
             android:layout_height="40dp"
             android:text="Rol"
-            android:gravity="center"/>
+            android:gravity="center" />
 
         <RadioGroup
             android:id="@+id/rg_userRole"
@@ -187,7 +208,8 @@
             android:layout_width="150dp"
             android:layout_height="45dp"
             android:text="Calle"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:drawableEnd="@drawable/ic_asterisk"/>
 
         <EditText
             android:id="@+id/et_userStreet"
@@ -206,7 +228,8 @@
             android:layout_width="150dp"
             android:layout_height="45dp"
             android:text="Numero"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:drawableEnd="@drawable/ic_asterisk"/>
 
         <EditText
             android:id="@+id/et_userStreetNumber"

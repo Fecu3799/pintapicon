@@ -10,9 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.example.pintapiconv3.repository.UserRepository
 
 
 class MainActivityAdmin : AppCompatActivity() {
@@ -22,7 +20,7 @@ class MainActivityAdmin : AppCompatActivity() {
     private lateinit var btn_cuentasABM: TextView
     private var userName: String = ""
 
-    private val sqlServerHelper = SQLServerHelper()
+    private val userRepository = UserRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +58,7 @@ class MainActivityAdmin : AppCompatActivity() {
     private fun loadUserName(): String {
         val loginData = getLoginData()
         if(loginData != null) {
-            userName = sqlServerHelper.getUserName(loginData.first, loginData.second)
+            userName = userRepository.getUserName(loginData.first, loginData.second)
         }
         return userName
     }

@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.models.User
+import com.example.pintapiconv3.repository.UserRepository
 
 class UserAdapter(context: Context, users: List<User>): ArrayAdapter<User>(context, 0, users) {
 

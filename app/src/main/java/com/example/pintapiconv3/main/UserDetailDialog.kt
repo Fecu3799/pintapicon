@@ -16,11 +16,25 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
-import com.example.pintapiconv3.utils.UserRepository
+import com.example.pintapiconv3.repository.BarrioRepository
+import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.UserViewModel
 import com.example.pintapiconv3.utils.UserViewModelFactory
 
 class UserDetailDialog : DialogFragment() {
+
+    private val sqlServerHelper = SQLServerHelper()
+    private val userRepository = UserRepository()
+    private val barrioRepository = BarrioRepository()
+
+    private var user: User? = null
+    private var userUpdateListener: UserUpdateListener? = null
+
+    private lateinit var userViewModel: UserViewModel
+
+    interface UserUpdateListener {
+        fun onUserUpdated(updatedUser: User)
+    }
 
     companion object {
         private const val ARG_USER = "user"
@@ -34,34 +48,11 @@ class UserDetailDialog : DialogFragment() {
         }
     }
 
-    interface UserUpdateListener {
-        fun onUserUpdated(updatedUser: User)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ) : View? {
+        return inflater.inflate(R.layout.dialog_user_details, container, false)
     }
-
-    private lateinit var userId: EditText
-    private lateinit var userName: EditText
-    private lateinit var userLastName: EditText
-    private lateinit var userEmail: EditText
-    private lateinit var userDateOfBirth: EditText
-    private lateinit var userPhoneNumber: EditText
-    private lateinit var userRol: RadioGroup
-    private lateinit var userStreet: EditText
-    private lateinit var userStreetNumber : EditText
-    private lateinit var userHood: Spinner
-    private lateinit var userState: Spinner
-    private lateinit var userGender: Spinner
-    private lateinit var userSkill : Spinner
-    private lateinit var userPosition : Spinner
-
-    private lateinit var btnSave: Button
-    private lateinit var btnCancel: Button
-
-    private val sqlServerHelper = SQLServerHelper()
-    private lateinit var userViewModel: UserViewModel
-
-    private var user: User? = null
-
-    private var userUpdateListener: UserUpdateListener? = null
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -70,21 +61,13 @@ class UserDetailDialog : DialogFragment() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ) : View? {
-        return inflater.inflate(R.layout.dialog_user_details, container, false)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val userRepository = UserRepository()
         val factory = UserViewModelFactory(userRepository)
-        userViewModel = ViewModelProvider(this, factory).get(UserViewModel::class.java)
+        userViewModel = ViewModelProvider(this, factory)[UserViewModel::class.java]
 
         user = arguments?.getSerializable(ARG_USER) as? User
-
 
         initViews()
         setViews()
@@ -139,7 +122,7 @@ class UserDetailDialog : DialogFragment() {
     }
 
     private fun loadSpinners(user: User) {
-        val barrios = sqlServerHelper.getBarrios() ?: emptyList()
+        val barrios = barrioRepository.getBarrios() ?: emptyList()
         val estados = sqlServerHelper.getEstadosCuenta() ?: emptyList()
         val generos = sqlServerHelper.getGeneros() ?: emptyList()
         val habilidades = sqlServerHelper.getHabilidades() ?: emptyList()
@@ -191,4 +174,21 @@ class UserDetailDialog : DialogFragment() {
             dismiss()
         }
     }
+
+    private lateinit var userId: EditText
+    private lateinit var userName: EditText
+    private lateinit var userLastName: EditText
+    private lateinit var userEmail: EditText
+    private lateinit var userDateOfBirth: EditText
+    private lateinit var userPhoneNumber: EditText
+    private lateinit var userRol: RadioGroup
+    private lateinit var userStreet: EditText
+    private lateinit var userStreetNumber : EditText
+    private lateinit var userHood: Spinner
+    private lateinit var userState: Spinner
+    private lateinit var userGender: Spinner
+    private lateinit var userSkill : Spinner
+    private lateinit var userPosition : Spinner
+    private lateinit var btnSave: Button
+    private lateinit var btnCancel: Button
 }

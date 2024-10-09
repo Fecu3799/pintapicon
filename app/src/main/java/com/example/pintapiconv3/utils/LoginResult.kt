@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.models
+package com.example.pintapiconv3.utils
 
 sealed class LoginResult {
 

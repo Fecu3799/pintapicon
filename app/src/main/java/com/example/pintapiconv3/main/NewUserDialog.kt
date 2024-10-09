@@ -15,36 +15,21 @@ import androidx.fragment.app.DialogFragment
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
-import com.example.pintapiconv3.utils.UserRepository
+import com.example.pintapiconv3.repository.BarrioRepository
+import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.Utils.isValidEmail
 import com.example.pintapiconv3.utils.Utils.isValidPassword
 import com.example.pintapiconv3.utils.Utils.validateBirthDate
 
 class NewUserDialog : DialogFragment() {
 
-    private lateinit var userId: EditText
-    private lateinit var userEmail: EditText
-    private lateinit var userPassword: EditText
-    private lateinit var userName: EditText
-    private lateinit var userLastName: EditText
-    private lateinit var userDateOfBirth: EditText
-    private lateinit var userPhoneNumber: EditText
-    private lateinit var userRol: RadioGroup
-    private lateinit var userStreet: EditText
-    private lateinit var userStreetNumber : EditText
-    private lateinit var userHood: Spinner
-    private lateinit var userState: Spinner
-    private lateinit var userGender: Spinner
-    private lateinit var userSkill : Spinner
-    private lateinit var userPosition : Spinner
-    private lateinit var btn_save: Button
-    private lateinit var btn_cancel: Button
-
-    private var userCreationListener: UserCreationListener? = null
     private val sqlServerHelper = SQLServerHelper()
     private val userRepository = UserRepository()
+    private val barrioRepository = BarrioRepository()
 
-    // Permite saber cuándo se ha creado un nuevo usuario y avisar a AbmUserActivity para actualizar la lista
+    private var userCreationListener: UserCreationListener? = null
+
+    // Interfaz para notificar a AbmUserActivity cuando se ha creado una cuenta y poder actualizar la lista
     interface UserCreationListener {
         fun onUserCreated(newUser: User)
     }
@@ -101,35 +86,30 @@ class NewUserDialog : DialogFragment() {
         btn_save = view!!.findViewById(R.id.btn_save)
         btn_cancel = view!!.findViewById(R.id.btn_cancel)
 
-        userId.setText((sqlServerHelper.getLastUserId() + 1).toString())
+        userId.setText((userRepository.getLastUserId() + 1).toString())
         userId.isEnabled = false
     }
 
     private fun loadSpinners() {
-        val barrios = sqlServerHelper.getBarrios()
+        val barrios = barrioRepository.getBarrios()
         val estados = sqlServerHelper.getEstadosCuenta()
         val generos = sqlServerHelper.getGeneros()
         val habilidades = sqlServerHelper.getHabilidades()
         val posiciones = sqlServerHelper.getPosiciones()
 
-        setSpinners(userHood, barrios, 1)
-        setSpinners(userState, estados, 1)
-        setSpinners(userGender, generos, 1)
-        setSpinners(userSkill, habilidades, 1)
-        setSpinners(userPosition, posiciones, 1)
+        setSpinners(userHood, barrios)
+        setSpinners(userState, estados)
+        setSpinners(userGender, generos)
+        setSpinners(userSkill, habilidades)
+        setSpinners(userPosition, posiciones)
     }
 
-    private fun setSpinners(spinner: Spinner, items: List<Pair<Int, String>>, selectedItem: Int) {
+    private fun setSpinners(spinner: Spinner, items: List<Pair<Int, String>>) {
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, items.map { it.second })
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
 
-        val index = items.indexOfFirst { it.first == selectedItem }
-        if (index != -1) {
-            spinner.setSelection(index)
-        } else {
-            spinner.setSelection(0)
-        }
+        spinner.setSelection(1)
     }
 
     private fun validateFields(): String {
@@ -177,7 +157,7 @@ class NewUserDialog : DialogFragment() {
             apellido = userLastName.text.toString(),
             fechaNacimiento = userDateOfBirth.text.toString(),
             telefono = userPhoneNumber.text.toString(),
-            idDireccion = 0,
+            idDireccion = -1,
             calle = userStreet.text.toString(),
             numero = userStreetNumber.text.toString().toInt(),
             idBarrio = userHood.selectedItemPosition + 1,
@@ -195,4 +175,22 @@ class NewUserDialog : DialogFragment() {
         userCreationListener?.onUserCreated(newUser)
         dismiss()
     }
+
+    private lateinit var userId: EditText
+    private lateinit var userEmail: EditText
+    private lateinit var userPassword: EditText
+    private lateinit var userName: EditText
+    private lateinit var userLastName: EditText
+    private lateinit var userDateOfBirth: EditText
+    private lateinit var userPhoneNumber: EditText
+    private lateinit var userRol: RadioGroup
+    private lateinit var userStreet: EditText
+    private lateinit var userStreetNumber : EditText
+    private lateinit var userHood: Spinner
+    private lateinit var userState: Spinner
+    private lateinit var userGender: Spinner
+    private lateinit var userSkill : Spinner
+    private lateinit var userPosition : Spinner
+    private lateinit var btn_save: Button
+    private lateinit var btn_cancel: Button
 }
