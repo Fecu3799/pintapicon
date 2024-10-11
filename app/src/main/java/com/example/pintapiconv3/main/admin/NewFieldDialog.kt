@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main.admin
+/*package com.example.pintapiconv3.main.admin
 
 import android.content.Context
 import android.os.Bundle
@@ -43,4 +43,4 @@ class NewFieldDialog: DialogFragment() {
     }
 
 
-}
+}*/

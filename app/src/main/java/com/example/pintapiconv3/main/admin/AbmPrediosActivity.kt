@@ -1,6 +1,7 @@
-package com.example.pintapiconv3.main.admin
+/*package com.example.pintapiconv3.main.admin
 
 import android.os.Bundle
+import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -8,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.pintapiconv3.R
+import com.example.pintapiconv3.models.Predio
 
 class AbmPrediosActivity : AppCompatActivity(), NewFieldDialog.FieldCreationListener {
 
@@ -38,4 +40,10 @@ class AbmPrediosActivity : AppCompatActivity(), NewFieldDialog.FieldCreationList
             dialog.show(supportFragmentManager, "newFieldDialog")
         }
     }
-}
+
+    override fun onFieldCreated(predio: Predio) {
+        val adapter = listViewPredios.adapter as ArrayAdapter<Predio>
+        adapter.add(predio)
+        adapter.notifyDataSetChanged()
+    }
+}*/
