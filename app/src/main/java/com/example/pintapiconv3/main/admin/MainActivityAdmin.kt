@@ -18,6 +18,8 @@ class MainActivityAdmin : AppCompatActivity() {
     private lateinit var adminName: TextView
     private lateinit var btn_logout: TextView
     private lateinit var btn_cuentasABM: TextView
+    private lateinit var btn_prediosABM: TextView
+
     private var userName: String = ""
 
     private val userRepository = UserRepository()
@@ -33,6 +35,7 @@ class MainActivityAdmin : AppCompatActivity() {
         }
 
         btn_cuentasABM = findViewById(R.id.btn_cuentasABM)
+        btn_prediosABM = findViewById(R.id.btn_prediosABM)
         btn_logout = findViewById(R.id.btn_logout)
         adminName = findViewById(R.id.tv_nombre)
 
@@ -40,6 +43,11 @@ class MainActivityAdmin : AppCompatActivity() {
 
         btn_cuentasABM.setOnClickListener {
             val intent = Intent(this, AbmUserActivity::class.java)
+            startActivity(intent)
+        }
+
+        btn_prediosABM.setOnClickListener {
+            val intent = Intent(this, AbmPrediosActivity::class.java)
             startActivity(intent)
         }
 
