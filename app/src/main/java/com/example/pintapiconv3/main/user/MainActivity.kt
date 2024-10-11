@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main
+package com.example.pintapiconv3.main.user
 
 import android.app.Dialog
 import android.content.Context
@@ -16,13 +16,14 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.databinding.ActivityMainBinding
+import com.example.pintapiconv3.main.LoginActivity
 import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.UserViewModel
 import com.example.pintapiconv3.utils.UserViewModelFactory
-import com.example.pintapiconv3.main.fragments.HomeFragment
-import com.example.pintapiconv3.main.fragments.NotifFragment
-import com.example.pintapiconv3.main.fragments.ProfileFragment
-import com.example.pintapiconv3.main.fragments.SearchFragment
+import com.example.pintapiconv3.main.user.fragments.HomeFragment
+import com.example.pintapiconv3.main.user.fragments.NotifFragment
+import com.example.pintapiconv3.main.user.fragments.ProfileFragment
+import com.example.pintapiconv3.main.user.fragments.SearchFragment
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.utils.JWToken
 import com.example.pintapiconv3.utils.Utils.showToast

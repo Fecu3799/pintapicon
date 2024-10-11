@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main
+package com.example.pintapiconv3.main.user
 
 import android.os.Bundle
 import android.view.View

@@ -9,7 +9,7 @@
     android:gravity="bottom"
     android:clickable="true"
     android:focusable="true"
-    tools:context="main.MainActivity"
+    tools:context=".main.user.MainActivity"
     android:id="@+id/userHeader">
 
     <!-- Información del usuario -->

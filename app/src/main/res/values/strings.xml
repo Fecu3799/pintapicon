@@ -57,8 +57,10 @@
     //Admin
     <string name="admin">Bienvenido ADMINISTRADOR</string>
     <string name="reportes">Reportes</string>
-    <string name="modificaciones">Modificaciones</string>
+    <string name="prediosABM">Predios ABM</string>
     <string name="altas_bajas">Cuentas ABM</string>
+    <string name="hood">Barrio</string>
+    <string name="state">Estado</string>
 
 
 </resources>

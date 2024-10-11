@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main
+package com.example.pintapiconv3.main.admin
 
 import android.content.Context
 import android.content.Intent
@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.pintapiconv3.R
-import com.example.pintapiconv3.database.SQLServerHelper
+import com.example.pintapiconv3.main.LoginActivity
 import com.example.pintapiconv3.repository.UserRepository
 
 

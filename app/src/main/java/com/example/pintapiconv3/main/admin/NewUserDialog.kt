@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main
+package com.example.pintapiconv3.main.admin
 
 import android.content.Context
 import android.os.Bundle

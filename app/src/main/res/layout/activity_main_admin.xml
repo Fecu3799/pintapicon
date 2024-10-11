@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".main.MainActivityAdmin"
+    tools:context=".main.admin.MainActivityAdmin"
     android:background="@drawable/background">
 
     <ImageView
@@ -82,12 +82,13 @@
         app:layout_constraintVertical_bias="0.499" />
 
     <TextView
+        android:id="@+id/btn_prediosABM"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:background="@drawable/et_background"
         android:gravity="center"
         android:padding="10dp"
-        android:text="@string/modificaciones"
+        android:text="@string/prediosABM"
         android:textColor="@color/black"
         android:textSize="24sp"
         app:drawableStartCompat="@drawable/ic_modifications"

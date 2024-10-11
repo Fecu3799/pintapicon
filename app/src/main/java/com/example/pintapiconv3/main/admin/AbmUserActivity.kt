@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main
+package com.example.pintapiconv3.main.admin
 
 import android.os.Bundle
 import android.view.View
@@ -9,7 +9,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
-import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.utils.UserAdapter
 import com.example.pintapiconv3.repository.UserRepository

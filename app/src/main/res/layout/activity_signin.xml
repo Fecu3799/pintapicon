@@ -12,7 +12,7 @@
         android:id="@+id/main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:context=".main.SigninActivity">
+        tools:context=".main.user.SigninActivity">
 
         <View
             android:id="@+id/btn_atras"
