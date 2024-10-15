@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
+import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.repository.BarrioRepository
 import com.example.pintapiconv3.repository.UserRepository
@@ -182,9 +183,11 @@ class SigninActivity : AppCompatActivity() {
                 else {
                     val verificationCode = generateVerificationCode()
 
-                    val calle = et_calle.text.toString()
-                    val numero = et_numero.text.toString().toInt()
-                    val idBarrio = barrioRepository.getBarrios()[spner_barrio.selectedItemPosition - 1].first
+                    val direccion = Direccion(
+                        calle = et_calle.text.toString(),
+                        numero = et_numero.text.toString().toInt(),
+                        idBarrio = barrioRepository.getBarrios()[spner_barrio.selectedItemPosition - 1].first
+                    )
 
                     val idGenero = when (rg_genero.checkedRadioButtonId) {
                         R.id.rb_masculino -> UserRepository.Companion.Gender.MALE
@@ -201,9 +204,9 @@ class SigninActivity : AppCompatActivity() {
                         fechaNacimiento = convertDateFormat(et_fechaNacimiento.text.toString())!!,
                         telefono = et_telefono.text.toString(),
                         idDireccion = -1,
-                        calle = calle,
-                        numero = numero,
-                        idBarrio = idBarrio,
+                        calle = direccion.calle,
+                        numero = direccion.numero,
+                        idBarrio = direccion.idBarrio,
                         barrio = "",
                         localidad = "",
                         provincia = "",
@@ -218,7 +221,7 @@ class SigninActivity : AppCompatActivity() {
                     withContext(Dispatchers.IO) {
                         try {
                             // Insertar la direccion en la base de datos
-                            val idDireccion = userRepository.insertDireccion(calle, numero, idBarrio)
+                            val idDireccion = userRepository.insertDireccion(direccion.calle, direccion.numero, direccion.idBarrio)
 
                             if (idDireccion != null) {
                                 val result = userRepository.insertAccount(user, idDireccion)

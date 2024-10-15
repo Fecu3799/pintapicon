@@ -1,270 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_agregar_cancha"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layout_margin="15dp">
 
-    <LinearLayout
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_gravity="center">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Campos con * son obligatorios"
-            android:gravity="center"
-            android:textStyle="bold"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="45dp"
-            android:text="Identificador"
-            android:gravity="center"
-            android:drawableEnd="@drawable/ic_asterisk" />
-
-        <EditText
-            android:id="@+id/et_fieldId"
-            android:layout_width="200dp"
-            android:layout_height="45dp"
-            android:textSize="14sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="45dp"
-            android:text="Nombre del predio"
-            android:gravity="center"
-            android:drawableEnd="@drawable/ic_asterisk" />
-
-        <EditText
-            android:id="@+id/et_fieldName"
-            android:layout_width="200dp"
-            android:layout_height="45dp"
-            android:textSize="14sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="45dp"
-            android:text="@string/phoneNumber"
-            android:gravity="center"
-            android:drawableEnd="@drawable/ic_asterisk" />
-
-        <EditText
-            android:id="@+id/et_fieldPhoneNumber"
-            android:layout_width="200dp"
-            android:layout_height="45dp"
-            android:textSize="14sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="45dp"
-            android:text="Calle"
-            android:gravity="center"
-            android:drawableEnd="@drawable/ic_asterisk" />
-
-        <EditText
-            android:id="@+id/et_fieldStreet"
-            android:layout_width="200dp"
-            android:layout_height="45dp"
-            android:textSize="14sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="45dp"
-            android:text="@string/number"
-            android:gravity="center"
-            android:drawableEnd="@drawable/ic_asterisk" />
-
-        <EditText
-            android:id="@+id/et_fieldNumber"
-            android:layout_width="200dp"
-            android:layout_height="45dp"
-            android:textSize="14sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="45dp"
-            android:text="@string/hood"
-            android:gravity="center"/>
-
-        <Spinner
-            android:id="@+id/spner_fieldHood"
-            android:layout_width="200dp"
-            android:layout_height="45dp"
-            android:textSize="14sp"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="45dp"
-            android:text="@string/state"
-            android:gravity="center"/>
-
-        <Spinner
-            android:id="@+id/spner_fieldState"
-            android:layout_width="200dp"
-            android:layout_height="45dp"
-            android:textSize="14sp"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="48dp"
-            android:text="Ubicación"
-            android:gravity="center" />
-
-        <Button
-            android:id="@+id/btn_markOnMap"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Marcar en Mapa para obtener URL"
-            android:layout_gravity="center"
-            android:textSize="12sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="45dp"
-            android:text="URL de Google Maps"
-            android:gravity="center" />
-
-        <EditText
-            android:id="@+id/et_googleMapsUrl"
-            android:layout_width="200dp"
-            android:layout_height="45dp"
-            android:inputType="textUri"
-            android:textSize="14sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:text="Nombre del predio"
         android:layout_gravity="center"
-        android:layout_margin="5dp">
+        android:textSize="18sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="o ingresar manualmente las coordenadas"
-            android:gravity="center"
-            android:textStyle="bold"/>
-
-    </LinearLayout>
-
-    <LinearLayout
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:text=" Agregar cancha"
+        android:background="@drawable/btn_background"
+        android:padding="6dp"
+        android:layout_marginTop="20dp"
+        app:drawableStartCompat="@drawable/ic_plus" />
 
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="45dp"
-            android:text="Latitud"
-            android:gravity="center" />
-
-        <EditText
-            android:id="@+id/et_fieldLatitude"
-            android:layout_width="200dp"
-            android:layout_height="45dp"
-            android:textSize="14sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_canchas"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="45dp"
-            android:text="Longitud"
-            android:gravity="center" />
-
-        <EditText
-            android:id="@+id/et_fieldLongitude"
-            android:layout_width="200dp"
-            android:layout_height="45dp"
-            android:textSize="14sp" />
-
-    </LinearLayout>
+        android:layout_marginTop="16dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
+        android:layout_marginVertical="10dp"
         android:orientation="horizontal"
         android:gravity="center">
 
         <Button
-            android:id="@+id/btn_cancel"
+            android:id="@+id/btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="20dp"
-            android:text="Cancelar"
+            android:text="Atras"
             android:textSize="10sp"/>
 
         <Button
@@ -272,7 +50,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="30dp"
-            android:text="Siguiente"
+            android:text="Guardar"
             android:textSize="10sp"/>
 
     </LinearLayout>

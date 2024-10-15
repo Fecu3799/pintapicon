@@ -46,10 +46,10 @@ class MainActivityAdmin : AppCompatActivity() {
             startActivity(intent)
         }
 
-        /*btn_prediosABM.setOnClickListener {
+        btn_prediosABM.setOnClickListener {
             val intent = Intent(this, AbmPrediosActivity::class.java)
             startActivity(intent)
-        }*/
+        }
 
         btn_logout.setOnClickListener {
             logoutUser()

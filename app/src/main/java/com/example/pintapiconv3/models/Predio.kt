@@ -9,8 +9,7 @@ data class Predio (
     var idDireccion: Int,
     var idEstado: Int,
     var disponibilidad: Boolean,
-    var precio_hora: Double,
+    var url_google_maps: String?,
     var latitud: Double?,
-    var longitud: Double?,
-    var url_google_maps: String?
+    var longitud: Double?
 ): Serializable
