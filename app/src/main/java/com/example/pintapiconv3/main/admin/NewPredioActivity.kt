@@ -1,31 +1,38 @@
 package com.example.pintapiconv3.main.admin
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Spinner
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
+import com.example.pintapiconv3.database.SQLServerHelper
+import com.example.pintapiconv3.models.Cancha
 import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.Predio
 import com.example.pintapiconv3.repository.PredioRepository
 import com.example.pintapiconv3.utils.Utils.showToast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class NewPredioActivity : AppCompatActivity() {
 
     private val predioRepository = PredioRepository()
+    private val sqlServerHelper = SQLServerHelper()
 
-    private lateinit var layoutAltaPredio: LinearLayout
-    private lateinit var layoutAgregarCancha: LinearLayout
-    private lateinit var btnSiguiente: Button
-    private lateinit var btnCancelar: Button
-    private lateinit var btnGuardar: Button
-    private lateinit var btnAtras: Button
+    private var canchasList = mutableListOf<Cancha>()
+    private var currentLayout = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,20 +46,24 @@ class NewPredioActivity : AppCompatActivity() {
 
         initViews()
 
-        btnSiguiente.setOnClickListener {
-            nextLayout(1)
+        btnSiguiente1.setOnClickListener {
+            nextLayout()
         }
 
-        btnAtras.setOnClickListener {
-            nextLayout(0)
+        btnSiguiente2.setOnClickListener {
+            nextLayout()
+        }
+
+        btnAtras1.setOnClickListener {
+            previousLayout()
+        }
+
+        btnAtras2.setOnClickListener {
+            previousLayout()
         }
 
         btnGuardar.setOnClickListener {
-            val error = validateFields()
-            if(error.isNotEmpty())
-                showToast(error)
-            else
-                savePredio()
+
         }
 
         btnCancelar.setOnClickListener {
@@ -63,10 +74,13 @@ class NewPredioActivity : AppCompatActivity() {
     private fun initViews() {
         layoutAltaPredio = findViewById(R.id.layout_alta_predio)
         layoutAgregarCancha = findViewById(R.id.layout_agregar_cancha)
-        btnSiguiente = findViewById(R.id.btn_next)
+        layoutAgregarHorarios = findViewById(R.id.layout_agregar_horarios)
+        btnSiguiente1 = findViewById(R.id.btn_next1)
+        btnSiguiente2 = findViewById(R.id.btn_next2)
         btnCancelar = findViewById(R.id.btn_cancel)
         btnGuardar = findViewById(R.id.btn_save)
-        btnAtras = findViewById(R.id.btn_back)
+        btnAtras1 = findViewById(R.id.btn_back1)
+        btnAtras2 = findViewById(R.id.btn_back2)
 
         fieldId = findViewById(R.id.et_fieldId)
         fieldName = findViewById(R.id.et_fieldName)
@@ -84,42 +98,91 @@ class NewPredioActivity : AppCompatActivity() {
         fieldId.isEnabled = false
     }
 
-    private fun nextLayout(next: Int) {
+    private fun nextLayout() {
 
-        if(next != 0) {
-            layoutAltaPredio.animate()
-                .translationX(-layoutAltaPredio.width.toFloat())
-                .alpha(0f)
-                .setDuration(200)
-                .withEndAction {
-                    layoutAltaPredio.visibility = View.GONE
-                    layoutAgregarCancha.translationX = layoutAgregarCancha.width.toFloat()
-                    layoutAgregarCancha.alpha = 0f
-                    layoutAgregarCancha.visibility = View.VISIBLE
-                    layoutAgregarCancha.animate()
-                        .translationX(0f)
-                        .alpha(1f)
-                        .setDuration(200)
-                        .start()
-                }
-                .start()
-        } else {
-            layoutAgregarCancha.animate()
-                .translationX(layoutAgregarCancha.width.toFloat())
-                .alpha(0f)
-                .setDuration(200)
-                .withEndAction {
-                    layoutAgregarCancha.visibility = View.GONE
-                    layoutAltaPredio.translationX = 0f
-                    layoutAltaPredio.alpha = 0f
-                    layoutAltaPredio.visibility = View.VISIBLE
-                    layoutAltaPredio.animate()
-                        .alpha(1f)
-                        .setDuration(200)
-                        .start()
-                }
-                .start()
+        when(currentLayout) {
+            0 -> {
+                layoutAltaPredio.animate()
+                    .translationX(-layoutAltaPredio.width.toFloat())
+                    .alpha(0f)
+                    .setDuration(200)
+                    .withEndAction {
+                        layoutAltaPredio.visibility = View.GONE
+                        layoutAgregarCancha.translationX = layoutAgregarCancha.width.toFloat()
+                        layoutAgregarCancha.alpha = 0f
+                        layoutAgregarCancha.visibility = View.VISIBLE
+                        layoutAgregarCancha.animate()
+                            .translationX(0f)
+                            .alpha(1f)
+                            .setDuration(200)
+                            .start()
+                    }
+                    .start()
+                currentLayout = 1
+            }
+
+            1 -> {
+                layoutAgregarCancha.animate()
+                    .translationX(-layoutAgregarCancha.width.toFloat())
+                    .alpha(0f)
+                    .setDuration(200)
+                    .withEndAction {
+                        layoutAgregarCancha.visibility = View.GONE
+                        layoutAgregarHorarios.translationX = layoutAgregarHorarios.width.toFloat()
+                        layoutAgregarHorarios.alpha = 0f
+                        layoutAgregarHorarios.visibility = View.VISIBLE
+                        layoutAgregarHorarios.animate()
+                            .translationX(0f)
+                            .alpha(1f)
+                            .setDuration(200)
+                            .start()
+                    }
+                    .start()
+                currentLayout = 2
+            }
         }
+    }
+
+    private fun previousLayout() {
+        when(currentLayout) {
+            1 -> {
+                layoutAgregarCancha.animate()
+                    .translationX(layoutAgregarCancha.width.toFloat())
+                    .alpha(0f)
+                    .setDuration(200)
+                    .withEndAction {
+                        layoutAgregarCancha.visibility = View.GONE
+                        layoutAltaPredio.translationX = 0f //layoutAltaPredio.width.toFloat()
+                        layoutAltaPredio.alpha = 0f
+                        layoutAltaPredio.visibility = View.VISIBLE
+                        layoutAltaPredio.animate()
+                            .alpha(1f)
+                            .setDuration(200)
+                            .start()
+                    }
+                    .start()
+                currentLayout = 0
+            }
+            2 -> {
+                layoutAgregarHorarios.animate()
+                    .translationX(layoutAgregarHorarios.width.toFloat())
+                    .alpha(0f)
+                    .setDuration(200)
+                    .withEndAction {
+                        layoutAgregarHorarios.visibility = View.GONE
+                        layoutAgregarCancha.translationX = 0f //layoutAltaPredio.width.toFloat()
+                        layoutAgregarCancha.alpha = 0f
+                        layoutAgregarCancha.visibility = View.VISIBLE
+                        layoutAgregarCancha.animate()
+                            .alpha(1f)
+                            .setDuration(200)
+                            .start()
+                    }
+                    .start()
+                currentLayout = 1
+            }
+        }
+
     }
 
     private fun validateFields(): String {
@@ -144,36 +207,127 @@ class NewPredioActivity : AppCompatActivity() {
 
     private fun savePredio() {
 
-        val direccion = Direccion(
-            calle = fieldStreet.text.toString(),
-            numero = fieldNumber.text.toString().toInt(),
-            idBarrio = fieldHood.selectedItemPosition + 1
-        )
+        lifecycleScope.launch {
 
-        val predio = Predio(
-            id = fieldId.text.toString().toInt(),
-            nombre = fieldName.text.toString(),
-            telefono = fieldPhoneNumber.text.toString(),
-            idDireccion = -1,
-            idEstado = fieldState.selectedItemPosition + 1,
-            disponibilidad = true,
-            url_google_maps = googleMapsUrl.text.toString(),
-            latitud = fieldLatitude.text.toString().toDouble(),
-            longitud = fieldLongitude.text.toString().toDouble()
-        )
+            val direccion = Direccion(
+                calle = fieldStreet.text.toString(),
+                numero = fieldNumber.text.toString().toInt(),
+                idBarrio = fieldHood.selectedItemPosition + 1
+            )
+            val idDireccion = withContext(Dispatchers.IO) {
+                sqlServerHelper.insertDireccion(direccion.calle, direccion.numero, direccion.idBarrio)
+            }
 
-        val canchas = setCanchas(predio.id)
+            if (idDireccion != null) {
 
-        val horarios = setHorarios(predio.id)
+                val predio = Predio(
+                    id = fieldId.text.toString().toInt(),
+                    nombre = fieldName.text.toString(),
+                    telefono = fieldPhoneNumber.text.toString(),
+                    idDireccion = idDireccion!!,
+                    idEstado = fieldState.selectedItemPosition + 1,
+                    disponibilidad = true,
+                    url_google_maps = if (googleMapsUrl.text.isEmpty()) null else googleMapsUrl.text.toString(),
+                    latitud = if (fieldLatitude.text.isEmpty()) null else fieldLatitude.text.toString().toDouble(),
+                    longitud = if (fieldLongitude.text.isEmpty()) null else fieldLongitude.text.toString().toDouble(),
+                )
 
-        val success = predioRepository.savePredio(predio, direccion, canchas, horarios)
+                val idPredio = withContext(Dispatchers.IO) {
+                    predioRepository.insertPredio(predio)
+                }
 
-        if(success) {
+                if (idPredio > 0) {
+
+                    val canchasGuardadas = withContext(Dispatchers.IO) {
+                        canchasList.all { cancha ->
+                            predioRepository.insertCancha(cancha)
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+
+
+
+
+        val predioSuccess = predioRepository.insertPredio(predio)
+
+        if(predioSuccess) {
             showToast("Predio guardado correctamente")
             finish()
         } else
             showToast("Error al guardar el predio")
     }
+
+
+    private fun showDialogNewField(idPredio: Int) {
+
+        CoroutineScope(Dispatchers.Main).launch {
+            val tiposCanchas = withContext(Dispatchers.IO) {
+                sqlServerHelper.getTipoCanchas()
+            }
+
+            if(tiposCanchas.isNotEmpty()) {
+
+                val dialogView = LayoutInflater.from(this@NewPredioActivity).inflate(R.layout.dialog_new_field, null)
+
+                spnerTipoCancha = dialogView.findViewById(R.id.spner_tipo_cancha)
+                etPrecioHora = dialogView.findViewById(R.id.et_precio_hora)
+                btnGuardarCancha = dialogView.findViewById(R.id.btn_guardar_cancha)
+
+                val adapter = ArrayAdapter(this@NewPredioActivity, android.R.layout.simple_spinner_item, tiposCanchas.map {it.second})
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                spnerTipoCancha.adapter = adapter
+
+                val dialogBuilder = AlertDialog.Builder(this@NewPredioActivity)
+                    .setView(dialogView)
+                    .setTitle("Agragar cancha")
+
+                val alertDialog = dialogBuilder.create()
+
+                btnGuardarCancha.setOnClickListener {
+                    val tipoCanchaPosition = spnerTipoCancha.selectedItemPosition
+                    val precioHoraText = etPrecioHora.text.toString()
+
+                    if (tipoCanchaPosition == -1)
+                        showToast("Por favor ingrese un tipo de cancha")
+                    else if (precioHoraText.isEmpty())
+                        showToast("Por favor ingrese un precio por hora")
+                    else {
+                        val idTipoCancha = tiposCanchas[tipoCanchaPosition].first
+                        val precioHora = precioHoraText.toDouble()
+
+                        val cancha = Cancha (
+                            idPredio = idPredio,
+                            idTipoCancha = idTipoCancha,
+                            precioHora = precioHora
+                        )
+
+                        canchasList.add(cancha)
+                        showToast("Cancha agregada correctamente")
+                        alertDialog.dismiss()
+                    }
+                }
+
+                alertDialog.show()
+            } else {
+                showToast("No hay canchas disponibles para seleccionar")
+            }
+        }
+    }
+
+    private lateinit var layoutAltaPredio: LinearLayout
+    private lateinit var layoutAgregarCancha: LinearLayout
+    private lateinit var layoutAgregarHorarios: LinearLayout
+    private lateinit var btnSiguiente1: Button
+    private lateinit var btnSiguiente2: Button
+    private lateinit var btnCancelar: Button
+    private lateinit var btnGuardar: Button
+    private lateinit var btnAtras1: Button
+    private lateinit var btnAtras2: Button
 
     private lateinit var fieldId: EditText
     private lateinit var fieldName: EditText
@@ -186,4 +340,8 @@ class NewPredioActivity : AppCompatActivity() {
     private lateinit var googleMapsUrl: EditText
     private lateinit var fieldLatitude: EditText
     private lateinit var fieldLongitude: EditText
+
+    private lateinit var spnerTipoCancha: Spinner
+    private lateinit var etPrecioHora: EditText
+    private lateinit var btnGuardarCancha: Button
 }

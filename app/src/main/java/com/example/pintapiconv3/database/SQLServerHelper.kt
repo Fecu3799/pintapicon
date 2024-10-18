@@ -103,5 +103,59 @@ class SQLServerHelper {
         return list
     }
 
+    fun getTipoCanchas(): List<Pair<Int, String>> {
+        val list = mutableListOf<Pair<Int, String>>()
+        val query = "SELECT id, descripcion FROM tipos_canchas"
+
+        try {
+            val conn = DBConnection.getConnection()
+            val statement = conn?.createStatement()
+            val resultSet = statement?.executeQuery(query)
+
+            while(resultSet?.next() == true) {
+                val id = resultSet.getInt("id")
+                val descripcion = resultSet.getString("descripcion")
+                list.add(Pair(id, descripcion))
+            }
+
+            resultSet?.close()
+            statement?.close()
+            conn?.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return list
+    }
+
+
+    fun insertDireccion(calle: String, numero: Int, idBarrio: Int): Int? {
+        val query = """
+            INSERT INTO direcciones (calle, numero, idBarrio) 
+            OUTPUT INSERTED.id
+            VALUES (?, ?, ?)
+        """
+
+        try {
+            val conn = DBConnection.getConnection()
+            val preparedStatement = conn?.prepareStatement(query)
+
+            preparedStatement?.setString(1, calle)
+            preparedStatement?.setInt(2, numero)
+            preparedStatement?.setInt(3, idBarrio)
+
+            val resultSet = preparedStatement?.executeQuery()
+            resultSet?.next()
+            val idDireccion = resultSet?.getInt("id")
+
+            resultSet?.close()
+            preparedStatement?.close()
+            conn?.close()
+
+            return idDireccion
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
 
 }
