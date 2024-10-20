@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/tv_dia"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Lunes"
+        android:textSize="16sp" />
+
+    <Spinner
+        android:id="@+id/spner_estado_predio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/tv_hora_apertura"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:text="Apertura"
+        android:textSize="14sp"
+        android:background="?android:attr/selectableItemBackground"
+        android:padding="8dp"
+        android:gravity="center_vertical" />
+
+    <TextView
+        android:id="@+id/tv_hora_cierre"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:text="Cierre"
+        android:textSize="14sp"
+        android:background="?android:attr/selectableItemBackground"
+        android:padding="8dp"
+        android:gravity="center_vertical" />
+</LinearLayout>

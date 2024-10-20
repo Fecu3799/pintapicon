@@ -11,8 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="30dp"
-        android:visibility="gone">
+        android:layout_marginTop="30dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -321,6 +320,7 @@
         android:visibility="gone">
 
         <TextView
+            android:id="@+id/tv_nombre_predio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Nombre del predio"
@@ -328,6 +328,7 @@
             android:textSize="18sp" />
 
         <TextView
+            android:id="@+id/btn_agregar_cancha"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=" Agregar cancha"
@@ -362,7 +363,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="30dp"
-                android:text="Guardar"
+                android:text="Siguiente"
                 android:textSize="10sp"/>
 
         </LinearLayout>
@@ -376,19 +377,21 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:layout_marginTop="20dp"
-        android:padding="15dp">
+        android:padding="15dp"
+        android:visibility="gone">
 
-        <LinearLayout
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Horarios de apertura y cierre"
+            android:layout_gravity="center"
+            android:textSize="18sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_horarios"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Agregar Horarios"
-                android:layout_gravity="center"/>
-
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -416,7 +419,5 @@
         </LinearLayout>
 
     </LinearLayout>
-
-
 
 </LinearLayout>

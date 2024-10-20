@@ -221,7 +221,7 @@ class SigninActivity : AppCompatActivity() {
                     withContext(Dispatchers.IO) {
                         try {
                             // Insertar la direccion en la base de datos
-                            val idDireccion = userRepository.insertDireccion(direccion.calle, direccion.numero, direccion.idBarrio)
+                            val idDireccion = sqlServerHelper.insertDireccion(direccion.calle, direccion.numero, direccion.idBarrio)
 
                             if (idDireccion != null) {
                                 val result = userRepository.insertAccount(user, idDireccion)

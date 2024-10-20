@@ -8,31 +8,50 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Spinner
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
+import com.example.pintapiconv3.adapter.CanchaAdapter
+import com.example.pintapiconv3.adapter.Horario
+import com.example.pintapiconv3.adapter.HorarioAdapter
+import com.example.pintapiconv3.database.DBConnection
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.Cancha
 import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.Predio
+import com.example.pintapiconv3.repository.BarrioRepository
 import com.example.pintapiconv3.repository.PredioRepository
 import com.example.pintapiconv3.utils.Utils.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.sql.Connection
+import java.sql.SQLException
 
 class NewPredioActivity : AppCompatActivity() {
 
     private val predioRepository = PredioRepository()
     private val sqlServerHelper = SQLServerHelper()
+    private val barrioRepository = BarrioRepository()
 
     private var canchasList = mutableListOf<Cancha>()
     private var currentLayout = 0
+
+    private var horariosList = mutableListOf<Horario>()
+
+    private var predio: Predio? = null
+    private var cancha: Cancha? = null
+    private var direccion: Direccion? = null
+    private var horario: Horario? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,11 +66,24 @@ class NewPredioActivity : AppCompatActivity() {
         initViews()
 
         btnSiguiente1.setOnClickListener {
-            nextLayout()
+            val error = validateFields()
+            if(error.isEmpty()) {
+                savePredioData()
+                tvNombrePredio.text = predio?.nombre
+                nextLayout()
+            } else
+                showToast(error)
+        }
+
+        btnAgregarCancha.setOnClickListener {
+            showDialogNewField(predio?.id!!)
         }
 
         btnSiguiente2.setOnClickListener {
-            nextLayout()
+            if(canchasList.isEmpty())
+                showToast("Debe agregar al menos una cancha")
+            else
+                nextLayout()
         }
 
         btnAtras1.setOnClickListener {
@@ -63,7 +95,12 @@ class NewPredioActivity : AppCompatActivity() {
         }
 
         btnGuardar.setOnClickListener {
-
+            collectHorarios()
+            val error = validateHorarios()
+            if(error.isNotEmpty())
+                showToast(error)
+            else
+                savePredio()
         }
 
         btnCancelar.setOnClickListener {
@@ -81,6 +118,7 @@ class NewPredioActivity : AppCompatActivity() {
         btnGuardar = findViewById(R.id.btn_save)
         btnAtras1 = findViewById(R.id.btn_back1)
         btnAtras2 = findViewById(R.id.btn_back2)
+        btnAgregarCancha = findViewById(R.id.btn_agregar_cancha)
 
         fieldId = findViewById(R.id.et_fieldId)
         fieldName = findViewById(R.id.et_fieldName)
@@ -94,8 +132,37 @@ class NewPredioActivity : AppCompatActivity() {
         fieldLatitude = findViewById(R.id.et_fieldLatitude)
         fieldLongitude = findViewById(R.id.et_fieldLongitude)
 
+        tvNombrePredio = findViewById(R.id.tv_nombre_predio)
+        rvCanchas = findViewById(R.id.rv_canchas)
+        canchaAdapter = CanchaAdapter(canchasList)
+        rvCanchas.layoutManager = LinearLayoutManager(this)
+        rvCanchas.adapter = canchaAdapter
+
+        rvHorarios = findViewById(R.id.rv_horarios)
+        horarioAdapter = HorarioAdapter()
+        rvHorarios.layoutManager = LinearLayoutManager(this)
+        rvHorarios.adapter = horarioAdapter
+
         fieldId.setText(predioRepository.getNextPredioId().toString())
         fieldId.isEnabled = false
+
+        loadSpinners()
+    }
+
+    private fun loadSpinners() {
+        val barrios = barrioRepository.getBarrios()
+        val estados = sqlServerHelper.getEstadosPredio()
+
+        setSpinners(fieldHood, barrios)
+        setSpinners(fieldState, estados)
+    }
+
+    private fun setSpinners(spinner: Spinner, items: List<Pair<Int, String>>) {
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, items.map { it.second })
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
+
+        spinner.setSelection(0)
     }
 
     private fun nextLayout() {
@@ -195,73 +262,91 @@ class NewPredioActivity : AppCompatActivity() {
             error = "Por favor ingrese la calle del predio"
         else if(fieldNumber.text.isEmpty())
             error = "Por favor ingrese el numero del predio"
-        else if(fieldHood.selectedItemPosition == -1)
-            error = "Por favor seleccione un barrio"
-        else if(fieldState.selectedItemPosition == -1)
-            error = "Por favor seleccione un estado"
-        else if(googleMapsUrl.text.isEmpty() || (fieldLatitude.text.isEmpty() && fieldLongitude.text.isEmpty()))
-            error = "Por favor ingrese la ubicacion del predio mediante el mapa o manualmente con sus coordenadas"
+        else if(googleMapsUrl.text.isEmpty() && (fieldLatitude.text.trim().isEmpty() || fieldLongitude.text.trim().isEmpty()))
+            error = "Por favor ingrese la ubicacion del predio"
 
         return error
     }
 
-    private fun savePredio() {
+    private fun validateHorarios(): String {
+        var error = ""
 
-        lifecycleScope.launch {
-
-            val direccion = Direccion(
-                calle = fieldStreet.text.toString(),
-                numero = fieldNumber.text.toString().toInt(),
-                idBarrio = fieldHood.selectedItemPosition + 1
-            )
-            val idDireccion = withContext(Dispatchers.IO) {
-                sqlServerHelper.insertDireccion(direccion.calle, direccion.numero, direccion.idBarrio)
-            }
-
-            if (idDireccion != null) {
-
-                val predio = Predio(
-                    id = fieldId.text.toString().toInt(),
-                    nombre = fieldName.text.toString(),
-                    telefono = fieldPhoneNumber.text.toString(),
-                    idDireccion = idDireccion!!,
-                    idEstado = fieldState.selectedItemPosition + 1,
-                    disponibilidad = true,
-                    url_google_maps = if (googleMapsUrl.text.isEmpty()) null else googleMapsUrl.text.toString(),
-                    latitud = if (fieldLatitude.text.isEmpty()) null else fieldLatitude.text.toString().toDouble(),
-                    longitud = if (fieldLongitude.text.isEmpty()) null else fieldLongitude.text.toString().toDouble(),
-                )
-
-                val idPredio = withContext(Dispatchers.IO) {
-                    predioRepository.insertPredio(predio)
-                }
-
-                if (idPredio > 0) {
-
-                    val canchasGuardadas = withContext(Dispatchers.IO) {
-                        canchasList.all { cancha ->
-                            predioRepository.insertCancha(cancha)
-                        }
-                    }
-                }
+        horariosList.forEach { horario ->
+            if(horario.horaApertura == "Apertura" || horario.horaCierre == "Cierre" ||
+                horario.horaApertura.isEmpty() || horario.horaCierre.isEmpty()) {
+                error = "Debe agregar horarios para todos los dias de la semana"
+                return error
             }
         }
 
-
-
-
-
-
-
-        val predioSuccess = predioRepository.insertPredio(predio)
-
-        if(predioSuccess) {
-            showToast("Predio guardado correctamente")
-            finish()
-        } else
-            showToast("Error al guardar el predio")
+        return error
     }
 
+    private fun savePredioData() {
+        predio = Predio(
+            id = fieldId.text.toString().toInt(),
+            nombre = fieldName.text.toString(),
+            telefono = fieldPhoneNumber.text.toString(),
+            idDireccion = 0,
+            idEstado = if(fieldState.selectedItemPosition == 0) PredioRepository.OPEN else PredioRepository.CLOSED,
+            disponibilidad = true,
+            url_google_maps = if (googleMapsUrl.text.isEmpty()) null else googleMapsUrl.text.toString(),
+            latitud = if (fieldLatitude.text.isEmpty()) null else fieldLatitude.text.toString().toDouble(),
+            longitud = if (fieldLongitude.text.isEmpty()) null else fieldLongitude.text.toString().toDouble(),
+        )
+
+        direccion = Direccion(
+            calle = fieldStreet.text.toString(),
+            numero = fieldNumber.text.toString().toInt(),
+            idBarrio = fieldHood.selectedItemPosition + 1
+        )
+    }
+
+    private fun savePredio() {
+
+        CoroutineScope(Dispatchers.IO).launch {
+
+            var conn: Connection? = null
+
+            try {
+
+                conn = DBConnection.getConnection()
+                conn?.autoCommit = false
+
+
+                val idDireccion = sqlServerHelper.insertDireccionWithConnection(conn!!, direccion!!)
+                    ?: throw SQLException("Error al insertar direccion")
+                predio?.idDireccion = idDireccion
+
+                val predioId = predioRepository.insertPredioWithConnection(conn, predio!!)
+                if(predioId == 0) throw SQLException("Error al insertar predio")
+
+                canchasList.forEach { cancha ->
+                    val canchaInserted = predioRepository.insertCanchaWithConnection(conn, cancha)
+                    if(!canchaInserted) throw SQLException("Error al insertar cancha")
+                }
+
+                horariosList.forEach { horario ->
+                    val horarioInserted = predioRepository.insertHorarioPredioWithConnection(conn, predio!!.id, horario)
+                    if(!horarioInserted) throw SQLException("Error al insertar horario")
+                }
+
+                conn.commit()
+                withContext(Dispatchers.Main) {
+                    showToast("Predio guardado correctamente")
+                    finish()
+                }
+            } catch (e: SQLException) {
+                conn?.rollback()
+                withContext(Dispatchers.Main) {
+                    showToast("Error al guardar el predio. ${e.message}")
+                }
+            } finally {
+                conn?.autoCommit = true
+                conn?.close()
+            }
+        }
+    }
 
     private fun showDialogNewField(idPredio: Int) {
 
@@ -289,33 +374,51 @@ class NewPredioActivity : AppCompatActivity() {
                 val alertDialog = dialogBuilder.create()
 
                 btnGuardarCancha.setOnClickListener {
-                    val tipoCanchaPosition = spnerTipoCancha.selectedItemPosition
-                    val precioHoraText = etPrecioHora.text.toString()
+                    val idTipoCancha = spnerTipoCancha.selectedItemPosition + 1
+                    val tipoCancha = spnerTipoCancha.selectedItem.toString()
+                    val precioHora = etPrecioHora.text.toString().toDoubleOrNull()
 
-                    if (tipoCanchaPosition == -1)
-                        showToast("Por favor ingrese un tipo de cancha")
-                    else if (precioHoraText.isEmpty())
-                        showToast("Por favor ingrese un precio por hora")
-                    else {
-                        val idTipoCancha = tiposCanchas[tipoCanchaPosition].first
-                        val precioHora = precioHoraText.toDouble()
-
-                        val cancha = Cancha (
+                    if (precioHora != null && precioHora <= 99999.99) {
+                        cancha = Cancha(
                             idPredio = idPredio,
                             idTipoCancha = idTipoCancha,
+                            tipoCancha = tipoCancha,
                             precioHora = precioHora
                         )
 
-                        canchasList.add(cancha)
+                        canchaAdapter.addCancha(cancha!!)
                         showToast("Cancha agregada correctamente")
                         alertDialog.dismiss()
-                    }
+                    } else
+                        showToast("Ingrese un precio válido. No puede exceder $99.999")
                 }
-
                 alertDialog.show()
             } else {
                 showToast("No hay canchas disponibles para seleccionar")
             }
+        }
+    }
+
+    private fun collectHorarios() {
+        horariosList.clear()
+
+        for(i in 0 until rvHorarios.childCount) {
+            val view = rvHorarios.getChildAt(i)
+
+            val tvHoraApertura = view.findViewById<TextView>(R.id.tv_hora_apertura)
+            val tvHoraCierre = view.findViewById<TextView>(R.id.tv_hora_cierre)
+            val spnerEstadoPredio = view.findViewById<Spinner>(R.id.spner_estado_predio)
+
+            val horaApertura = tvHoraApertura.text.toString()
+            val horaCierre = tvHoraCierre.text.toString()
+
+            horario = Horario (
+                dia = horarioAdapter.diasDeLaSemana[i],
+                horaApertura = horaApertura,
+                horaCierre = horaCierre
+            )
+
+            horariosList.add(horario!!)
         }
     }
 
@@ -328,6 +431,7 @@ class NewPredioActivity : AppCompatActivity() {
     private lateinit var btnGuardar: Button
     private lateinit var btnAtras1: Button
     private lateinit var btnAtras2: Button
+    private lateinit var btnAgregarCancha: TextView
 
     private lateinit var fieldId: EditText
     private lateinit var fieldName: EditText
@@ -341,7 +445,13 @@ class NewPredioActivity : AppCompatActivity() {
     private lateinit var fieldLatitude: EditText
     private lateinit var fieldLongitude: EditText
 
+    private lateinit var tvNombrePredio: TextView
+    private lateinit var rvCanchas: RecyclerView
+    private lateinit var canchaAdapter: CanchaAdapter
     private lateinit var spnerTipoCancha: Spinner
     private lateinit var etPrecioHora: EditText
     private lateinit var btnGuardarCancha: Button
+
+    private lateinit var horarioAdapter: HorarioAdapter
+    private lateinit var rvHorarios: RecyclerView
 }

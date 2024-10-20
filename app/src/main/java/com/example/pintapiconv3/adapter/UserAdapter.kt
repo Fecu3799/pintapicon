@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.utils
+package com.example.pintapiconv3.adapter
 
 import android.content.Context
 import android.util.Log

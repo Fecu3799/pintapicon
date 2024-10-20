@@ -730,13 +730,9 @@ class UserRepository {
             const val BLOCKED = 13
         }
 
-        /*object FieldStates {
-            const val OPEN = 5
-            const val CLOSE = 6
-            const val OUT_OF_SERVICE = 7
-        }
 
-        object MatchStates {
+
+        /*object MatchStates {
             const val PENDING = 8
             const val CANCELED = 9
             const val CONFIRMED = 10
