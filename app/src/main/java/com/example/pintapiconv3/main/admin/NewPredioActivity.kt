@@ -1,6 +1,11 @@
 package com.example.pintapiconv3.main.admin
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
@@ -12,7 +17,9 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -24,6 +31,7 @@ import com.example.pintapiconv3.adapter.Horario
 import com.example.pintapiconv3.adapter.HorarioAdapter
 import com.example.pintapiconv3.database.DBConnection
 import com.example.pintapiconv3.database.SQLServerHelper
+import com.example.pintapiconv3.main.admin.NewUserDialog.UserCreationListener
 import com.example.pintapiconv3.models.Cancha
 import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.Predio
@@ -34,6 +42,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.junit.Test
 import java.sql.Connection
 import java.sql.SQLException
 
@@ -53,6 +62,38 @@ class NewPredioActivity : AppCompatActivity() {
     private var direccion: Direccion? = null
     private var horario: Horario? = null
 
+    private var predioCreationListener: PredioCreationListener? = null
+
+    companion object {
+        const val REQUEST_LOCATION = 1001
+        const val LOCATION_PERMISSION_REQUEST_CODE = 1002
+    }
+
+    interface PredioCreationListener {
+        fun onPredioCreated(newPredio: Predio)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == REQUEST_LOCATION && resultCode == Activity.RESULT_OK) {
+            val locationUrl = data?.getStringExtra("LOCATION_URL")
+            googleMapsUrl.setText(locationUrl)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if(requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                val intent = Intent(this, MarkOnMapDialog::class.java)
+                startActivityForResult(intent, REQUEST_LOCATION)
+            } else {
+                showToast("Es necesario el permiso de ubicacion para seleccionar la ubicacion")
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -64,6 +105,17 @@ class NewPredioActivity : AppCompatActivity() {
         }
 
         initViews()
+
+        markOnMap.setOnClickListener {
+            if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                val intent = Intent(this, MarkOnMapDialog::class.java)
+                startActivityForResult(intent, REQUEST_LOCATION)
+            } else {
+                checkLocationPermission()
+            }
+
+
+        }
 
         btnSiguiente1.setOnClickListener {
             val error = validateFields()
@@ -105,6 +157,19 @@ class NewPredioActivity : AppCompatActivity() {
 
         btnCancelar.setOnClickListener {
             finish()
+        }
+    }
+
+    private fun checkLocationPermission() {
+        if(ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                LOCATION_PERMISSION_REQUEST_CODE
+            )
         }
     }
 
@@ -278,7 +343,6 @@ class NewPredioActivity : AppCompatActivity() {
                 return error
             }
         }
-
         return error
     }
 
@@ -289,7 +353,6 @@ class NewPredioActivity : AppCompatActivity() {
             telefono = fieldPhoneNumber.text.toString(),
             idDireccion = 0,
             idEstado = if(fieldState.selectedItemPosition == 0) PredioRepository.OPEN else PredioRepository.CLOSED,
-            disponibilidad = true,
             url_google_maps = if (googleMapsUrl.text.isEmpty()) null else googleMapsUrl.text.toString(),
             latitud = if (fieldLatitude.text.isEmpty()) null else fieldLatitude.text.toString().toDouble(),
             longitud = if (fieldLongitude.text.isEmpty()) null else fieldLongitude.text.toString().toDouble(),
@@ -313,28 +376,35 @@ class NewPredioActivity : AppCompatActivity() {
                 conn = DBConnection.getConnection()
                 conn?.autoCommit = false
 
+                if(conn != null) {
+                    val idDireccion =
+                        sqlServerHelper.insertDireccionWithConnection(conn, direccion!!)
+                            ?: throw SQLException("Error al insertar direccion")
+                    predio?.idDireccion = idDireccion
 
-                val idDireccion = sqlServerHelper.insertDireccionWithConnection(conn!!, direccion!!)
-                    ?: throw SQLException("Error al insertar direccion")
-                predio?.idDireccion = idDireccion
+                    val predioId = predioRepository.insertPredioWithConnection(conn, predio!!)
+                    if(predioId == 0) throw SQLException("Error al insertar predio")
 
-                val predioId = predioRepository.insertPredioWithConnection(conn, predio!!)
-                if(predioId == 0) throw SQLException("Error al insertar predio")
+                    canchasList.forEach { cancha ->
+                        val canchaInserted = predioRepository.insertCanchaWithConnection(conn, cancha)
+                        if(!canchaInserted) throw SQLException("Error al insertar cancha")
+                    }
 
-                canchasList.forEach { cancha ->
-                    val canchaInserted = predioRepository.insertCanchaWithConnection(conn, cancha)
-                    if(!canchaInserted) throw SQLException("Error al insertar cancha")
-                }
+                    horariosList.forEach { horario ->
+                        val horarioInserted = predioRepository.insertHorarioPredioWithConnection(conn, predio!!.id, horario)
+                        if(!horarioInserted) throw SQLException("Error al insertar horario")
+                    }
 
-                horariosList.forEach { horario ->
-                    val horarioInserted = predioRepository.insertHorarioPredioWithConnection(conn, predio!!.id, horario)
-                    if(!horarioInserted) throw SQLException("Error al insertar horario")
-                }
-
-                conn.commit()
-                withContext(Dispatchers.Main) {
-                    showToast("Predio guardado correctamente")
-                    finish()
+                    conn.commit()
+                    withContext(Dispatchers.Main) {
+                        showToast("Predio guardado correctamente")
+                        finish()
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        showToast("Error al guardar el predio. No se pudo conectar a la base de datos")
+                        Log.e("Database Error", "Database connection null")
+                    }
                 }
             } catch (e: SQLException) {
                 conn?.rollback()
@@ -383,7 +453,8 @@ class NewPredioActivity : AppCompatActivity() {
                             idPredio = idPredio,
                             idTipoCancha = idTipoCancha,
                             tipoCancha = tipoCancha,
-                            precioHora = precioHora
+                            precioHora = precioHora,
+                            disponibilidad = true
                         )
 
                         canchaAdapter.addCancha(cancha!!)
@@ -417,7 +488,6 @@ class NewPredioActivity : AppCompatActivity() {
                 horaApertura = horaApertura,
                 horaCierre = horaCierre
             )
-
             horariosList.add(horario!!)
         }
     }

@@ -37,8 +37,8 @@ class PredioRepository {
         try {
 
             val query = """
-                INSERT INTO predios (nombre, telefono, idDireccion, idEstado, disponibilidad, latitud, longitud, url_google_maps)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO predios (nombre, telefono, idDireccion, idEstado, latitud, longitud, url_google_maps)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
 
             val preparedStatement = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)
@@ -47,18 +47,17 @@ class PredioRepository {
             preparedStatement?.setString(2, predio.telefono)
             preparedStatement?.setInt(3, predio.idDireccion)
             preparedStatement?.setInt(4, predio.idEstado)
-            preparedStatement?.setInt(5, if (predio.disponibilidad) 1 else 0)
             if(predio.latitud != null && predio.longitud != null) {
-                preparedStatement?.setDouble(6, predio.latitud!!)
-                preparedStatement?.setDouble(7, predio.longitud!!)
+                preparedStatement?.setDouble(5, predio.latitud!!)
+                preparedStatement?.setDouble(6, predio.longitud!!)
             } else {
+                preparedStatement?.setNull(5, Types.DOUBLE)
                 preparedStatement?.setNull(6, Types.DOUBLE)
-                preparedStatement?.setNull(7, Types.DOUBLE)
             }
             if(predio.url_google_maps != null) {
-                preparedStatement?.setString(8, predio.url_google_maps)
+                preparedStatement?.setString(7, predio.url_google_maps)
             } else {
-                preparedStatement?.setNull(8, Types.VARCHAR)
+                preparedStatement?.setNull(7, Types.VARCHAR)
             }
             preparedStatement?.executeUpdate()
 
@@ -122,6 +121,56 @@ class PredioRepository {
             e.printStackTrace()
             false
         }
+    }
+
+    suspend fun getAllPredios(): List<Predio> {
+        val prediosList = mutableListOf<Predio>()
+        val query = """
+            
+        """.trimIndent()
+    }
+
+    suspend fun getCanchasByPredio(id: Int): List<Cancha> {
+        val canchasList = mutableListOf<Cancha>()
+        val query = """
+            SELECT c.idPredio, c.idTipoCancha, c.precio_hora, c.disponibilidad, t.descripcion
+            FROM predios_tipos_canchas c
+            LEFT JOIN tipos_canchas t ON c.idTipoCancha = t.id
+            WHERE c.idPredio = ?
+        """.trimIndent()
+
+        try {
+            val conn = DBConnection.getConnection()
+            val preparedStatement = conn?.prepareStatement(query)
+            preparedStatement?.setInt(1, id)
+            val resultSet = preparedStatement?.executeQuery()
+
+            while(resultSet?.next() == true) {
+                val idPredio = resultSet.getInt("idPredio")
+                val idTipoCancha = resultSet.getInt("idTipoCancha")
+                val tipoCancha = resultSet.getString("descripcion")
+                val precioHora = resultSet.getDouble("precio_hora")
+                val disponibilidad = resultSet.getBoolean("disponibilidad")
+
+                val cancha = Cancha (
+                    idPredio = idPredio,
+                    idTipoCancha = idTipoCancha,
+                    tipoCancha = tipoCancha,
+                    precioHora = precioHora,
+                    disponibilidad = disponibilidad
+                )
+
+                canchasList.add(cancha)
+            }
+
+            resultSet?.close()
+            preparedStatement?.close()
+            conn?.close()
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+
+        return canchasList
     }
 
     companion object {

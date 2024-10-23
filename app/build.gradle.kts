@@ -66,18 +66,19 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.runtime.saved.instance.state)
     implementation(libs.testng)
+    implementation(libs.play.services.location)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    implementation(libs.androidx.lifecycle.viewmodel.ktx) //viewModel
-    implementation(libs.mssql.jdbc) //sqlserver
+    implementation(libs.androidx.lifecycle.viewmodel.ktx) // ViewModel
+    implementation(libs.mssql.jdbc) // SQL Server
     implementation(libs.android.mail)
-    implementation(libs.android.activation) // activation
+    implementation(libs.android.activation) // Activation
     implementation(libs.jjwt.api) // Token JWT
     implementation(libs.jjwt.impl) // *
     implementation(libs.jjwt.jackson) // *
     implementation(libs.guava)
-
-
+    implementation(libs.play.services.maps) // Google Maps
+    implementation(libs.places) // Google Places
 }
 

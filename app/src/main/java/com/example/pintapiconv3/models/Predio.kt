@@ -8,7 +8,6 @@ data class Predio (
     var telefono: String,
     var idDireccion: Int,
     var idEstado: Int,
-    var disponibilidad: Boolean,
     var url_google_maps: String?,
     var latitud: Double?,
     var longitud: Double?

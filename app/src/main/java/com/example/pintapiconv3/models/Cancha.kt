@@ -6,5 +6,6 @@ data class Cancha (
     var idPredio: Int,
     var idTipoCancha: Int,
     var tipoCancha: String,
-    var precioHora: Double
+    var precioHora: Double,
+    var disponibilidad: Boolean
 ): Serializable

@@ -63,4 +63,7 @@
     <string name="state">Estado</string>
 
 
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">
+        AIzaSyDoWLWkEzXhg_jCOUkbZGDYVoCYuNGV86I
+    </string>
 </resources>

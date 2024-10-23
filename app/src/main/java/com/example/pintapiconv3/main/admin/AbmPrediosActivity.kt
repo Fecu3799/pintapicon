@@ -11,12 +11,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.pintapiconv3.R
+import com.example.pintapiconv3.adapter.PredioAdminAdapter
+import com.example.pintapiconv3.models.Predio
+import com.example.pintapiconv3.repository.PredioRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AbmPrediosActivity : AppCompatActivity() {
 
     private lateinit var btn_atras: View
     private lateinit var btnAgregarPredio: Button
     private lateinit var listViewPredios: ListView
+    private val predioRepository = PredioRepository()
+    private lateinit var predioAdminAdapter: PredioAdminAdapter
+    private var prediosList = mutableListOf<Predio>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,5 +50,39 @@ class AbmPrediosActivity : AppCompatActivity() {
             intent = Intent(this, NewPredioActivity::class.java)
             startActivity(intent)
         }
+
+        cargarPredios()
+
+        predioAdminAdapter = PredioAdminAdapter(
+            this, prediosList, onEditClick = { predio ->
+                editarPredio(predio)
+            }, onDetailsClick = { predio ->
+                verDetallesPredio(predio)
+            }
+        )
+
+        listViewPredios.adapter = predioAdminAdapter
+    }
+
+    private fun cargarPredios() {
+        CoroutineScope(Dispatchers.Main).launch {
+            val predios = withContext(Dispatchers.IO) {
+                predioRepository.getAllPredios()
+            }
+            prediosList.clear()
+            prediosList.addAll(predios)
+            predioAdminAdapter.notifyDataSetChanged()
+        }
+    }
+
+    private fun editarPredio(predio: Predio) {
+    }
+
+    private fun verDetallesPredio(predio: Predio) {
+        //TODO: Ver detalles del predio
+    }
+
+    private fun actualizarLista() {
+        cargarPredios()
     }
 }
