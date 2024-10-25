@@ -62,11 +62,11 @@ class NewPredioActivity : AppCompatActivity() {
     private var direccion: Direccion? = null
     private var horario: Horario? = null
 
-    private var predioCreationListener: PredioCreationListener? = null
-
     companion object {
         const val REQUEST_LOCATION = 1001
         const val LOCATION_PERMISSION_REQUEST_CODE = 1002
+
+        var predioCreationListener: PredioCreationListener? = null
     }
 
     interface PredioCreationListener {
@@ -113,8 +113,6 @@ class NewPredioActivity : AppCompatActivity() {
             } else {
                 checkLocationPermission()
             }
-
-
         }
 
         btnSiguiente1.setOnClickListener {
@@ -359,6 +357,7 @@ class NewPredioActivity : AppCompatActivity() {
         )
 
         direccion = Direccion(
+            id = 0,
             calle = fieldStreet.text.toString(),
             numero = fieldNumber.text.toString().toInt(),
             idBarrio = fieldHood.selectedItemPosition + 1
@@ -397,6 +396,7 @@ class NewPredioActivity : AppCompatActivity() {
 
                     conn.commit()
                     withContext(Dispatchers.Main) {
+                        predioCreationListener?.onPredioCreated(predio!!)
                         showToast("Predio guardado correctamente")
                         finish()
                     }
@@ -490,6 +490,11 @@ class NewPredioActivity : AppCompatActivity() {
             )
             horariosList.add(horario!!)
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finish()
     }
 
     private lateinit var layoutAltaPredio: LinearLayout

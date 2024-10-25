@@ -184,6 +184,7 @@ class SigninActivity : AppCompatActivity() {
                     val verificationCode = generateVerificationCode()
 
                     val direccion = Direccion(
+                        id = 0,
                         calle = et_calle.text.toString(),
                         numero = et_numero.text.toString().toInt(),
                         idBarrio = barrioRepository.getBarrios()[spner_barrio.selectedItemPosition - 1].first
@@ -196,7 +197,7 @@ class SigninActivity : AppCompatActivity() {
                     }
 
                     val user = User(
-                        id = -1,
+                        id = 0,
                         email = email,
                         password = hashPassword(et_password.text.toString()),
                         nombre = et_nombre.text.toString(),

@@ -3,6 +3,7 @@ package com.example.pintapiconv3.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
@@ -14,6 +15,7 @@ class CanchaAdapter(private val canchaList: MutableList<Cancha>) : RecyclerView.
     class CanchaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tipoCancha: TextView = itemView.findViewById(R.id.tv_tipo_cancha)
         val precioHora: TextView = itemView.findViewById(R.id.tv_precio_hora)
+        val delete: ImageView = itemView.findViewById(R.id.btn_delete_field)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CanchaViewHolder {
@@ -29,6 +31,10 @@ class CanchaAdapter(private val canchaList: MutableList<Cancha>) : RecyclerView.
 
         holder.tipoCancha.text = cancha.tipoCancha
         holder.precioHora.text = "$$precioHoraFormateado/hora"
+
+        holder.delete.setOnClickListener {
+            deleteCancha(position)
+        }
     }
 
     override fun getItemCount(): Int = canchaList.size
@@ -36,5 +42,13 @@ class CanchaAdapter(private val canchaList: MutableList<Cancha>) : RecyclerView.
     fun addCancha(cancha: Cancha) {
         canchaList.add(cancha)
         notifyItemInserted(canchaList.size - 1)
+    }
+
+    private fun deleteCancha(position: Int) {
+        if(position in canchaList.indices) {
+            canchaList.removeAt(position)
+            notifyItemRemoved(position)
+            notifyItemRangeChanged(position, canchaList.size)
+        }
     }
 }

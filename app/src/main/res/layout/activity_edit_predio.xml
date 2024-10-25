@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/main">
+
+    <!-- Contenedor de los Fragmentos -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/btn_nav_container"/>
+
+    <!-- Barra de Navegación o Botones de Siguiente/Anterior -->
+    <LinearLayout
+        android:id="@+id/btn_nav_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:paddingVertical="15dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Botón de Anterior -->
+        <Button
+            android:id="@+id/btn_anterior"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Anterior"
+            android:visibility="gone" />
+
+        <!-- Botón de Guardar Cambios -->
+        <Button
+            android:id="@+id/btn_guardar_cambios"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Guardar Cambios"
+            android:layout_marginStart="8dp"
+            android:visibility="gone" />
+
+        <!-- Botón de Siguiente -->
+        <Button
+            android:id="@+id/btn_siguiente"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Siguiente" />
+
+    </LinearLayout>
+</RelativeLayout>

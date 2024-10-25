@@ -209,16 +209,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
-        val token = userRepository.getSession(this)
-        Log.d("MainActivity", "Token obtenido: $token")
-
-        if(token == null || !JWToken.validateToken(token)) {
-            Log.d("MainActivity", "Token invalido o expirado")
-            showSessionExpiredDialog()
-            return false
-        }
-
         if(event?.action == MotionEvent.ACTION_DOWN) {
+            val token = userRepository.getSession(this)
+            Log.d("MainActivity", "Token obtenido: $token")
+
+            if(token == null || !JWToken.validateToken(token)) {
+                Log.d("MainActivity", "Token invalido o expirado")
+                showSessionExpiredDialog()
+                return false
+            }
+
             userRepository.renewSession(this)
         }
 

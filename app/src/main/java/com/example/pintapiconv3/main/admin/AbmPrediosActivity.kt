@@ -1,5 +1,6 @@
 package com.example.pintapiconv3.main.admin
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -7,19 +8,24 @@ import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.PredioAdminAdapter
+import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.Predio
 import com.example.pintapiconv3.repository.PredioRepository
+import com.example.pintapiconv3.utils.Utils.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
-class AbmPrediosActivity : AppCompatActivity() {
+class AbmPrediosActivity : AppCompatActivity(), NewPredioActivity.PredioCreationListener {
 
     private lateinit var btn_atras: View
     private lateinit var btnAgregarPredio: Button
@@ -47,11 +53,15 @@ class AbmPrediosActivity : AppCompatActivity() {
         }
 
         btnAgregarPredio.setOnClickListener {
-            intent = Intent(this, NewPredioActivity::class.java)
-            startActivity(intent)
+            val intent = Intent(this, NewPredioActivity::class.java)
+            val listener = object : NewPredioActivity.PredioCreationListener {
+                override fun onPredioCreated(newPredio: Predio) {
+                    this.onPredioCreated(newPredio)
+                }
+            }
+            NewPredioActivity.predioCreationListener = listener
+            addPredioLauncher.launch(intent)
         }
-
-        cargarPredios()
 
         predioAdminAdapter = PredioAdminAdapter(
             this, prediosList, onEditClick = { predio ->
@@ -62,6 +72,8 @@ class AbmPrediosActivity : AppCompatActivity() {
         )
 
         listViewPredios.adapter = predioAdminAdapter
+
+        cargarPredios()
     }
 
     private fun cargarPredios() {
@@ -76,13 +88,50 @@ class AbmPrediosActivity : AppCompatActivity() {
     }
 
     private fun editarPredio(predio: Predio) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val direccion = withContext(Dispatchers.IO) {
+                predioRepository.getDireccionById(predio.idDireccion)
+            }
+            if(direccion != null) {
+                val intent = Intent(this@AbmPrediosActivity, EditPredioActivity::class.java)
+                intent.putExtra("EXTRA_PREDIO", predio)
+                intent.putExtra("EXTRA_DIRECCION", direccion)
+                editPredioLauncher.launch(intent)
+            } else {
+                showToast("Error al cargar la direccion del predio")
+            }
+        }
+    }
+
+    private fun getDireccion(idDireccion: Int): Direccion? {
+        var direccion: Direccion? = null
+        runBlocking {
+            withContext(Dispatchers.IO) {
+                direccion = predioRepository.getDireccionById(idDireccion)
+            }
+        }
+        return direccion
     }
 
     private fun verDetallesPredio(predio: Predio) {
         //TODO: Ver detalles del predio
+        showToast("Falta implementar")
     }
 
-    private fun actualizarLista() {
-        cargarPredios()
+    private val addPredioLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if(result.resultCode == Activity.RESULT_OK)
+                cargarPredios()
+        }
+
+    private val editPredioLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if(result.resultCode == Activity.RESULT_OK)
+            cargarPredios()
+        }
+
+    override fun onPredioCreated(newPredio: Predio) {
+        prediosList.add(newPredio)
+        predioAdminAdapter.notifyDataSetChanged()
     }
 }
