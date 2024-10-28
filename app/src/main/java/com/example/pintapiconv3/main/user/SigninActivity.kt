@@ -18,7 +18,7 @@ import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.User
-import com.example.pintapiconv3.repository.BarrioRepository
+import com.example.pintapiconv3.repository.DireccionRepository
 import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.Utils.convertDateFormat
 import com.example.pintapiconv3.utils.Utils.generateVerificationCode
@@ -37,7 +37,7 @@ import kotlinx.coroutines.withContext
 class SigninActivity : AppCompatActivity() {
 
     private val userRepository = UserRepository()
-    private val barrioRepository = BarrioRepository()
+    private val direccionRepository = DireccionRepository()
     private val sqlServerHelper = SQLServerHelper()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,7 +100,7 @@ class SigninActivity : AppCompatActivity() {
         setupPasswordVisibilityToggle(this, et_password)
         setupPasswordVisibilityToggle(this, et_password2)
 
-        loadSpinner(spner_barrio, "Barrio", barrioRepository.getBarrios().map { it.second })
+        loadSpinner(spner_barrio, "Barrio", sqlServerHelper.getBarrios().map { it.second })
         loadSpinner(spner_localidad, "Localidad", listOf("Córdoba Capital"))
         loadSpinner(spner_provincia, "Provincia", listOf("Córdoba"))
         loadSpinner(spner_pais, "País", listOf("Argentina"))
@@ -187,7 +187,7 @@ class SigninActivity : AppCompatActivity() {
                         id = 0,
                         calle = et_calle.text.toString(),
                         numero = et_numero.text.toString().toInt(),
-                        idBarrio = barrioRepository.getBarrios()[spner_barrio.selectedItemPosition - 1].first
+                        idBarrio = sqlServerHelper.getBarrios()[spner_barrio.selectedItemPosition - 1].first
                     )
 
                     val idGenero = when (rg_genero.checkedRadioButtonId) {
@@ -222,7 +222,7 @@ class SigninActivity : AppCompatActivity() {
                     withContext(Dispatchers.IO) {
                         try {
                             // Insertar la direccion en la base de datos
-                            val idDireccion = sqlServerHelper.insertDireccion(direccion.calle, direccion.numero, direccion.idBarrio)
+                            val idDireccion = direccionRepository.insertDireccion(direccion.calle, direccion.numero, direccion.idBarrio)
 
                             if (idDireccion != null) {
                                 val result = userRepository.insertAccount(user, idDireccion)

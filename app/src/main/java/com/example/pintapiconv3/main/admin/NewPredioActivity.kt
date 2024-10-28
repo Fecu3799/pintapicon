@@ -1,7 +1,6 @@
 package com.example.pintapiconv3.main.admin
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -18,39 +17,35 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.CanchaAdapter
-import com.example.pintapiconv3.adapter.Horario
 import com.example.pintapiconv3.adapter.HorarioAdapter
 import com.example.pintapiconv3.database.DBConnection
 import com.example.pintapiconv3.database.SQLServerHelper
-import com.example.pintapiconv3.main.admin.NewUserDialog.UserCreationListener
 import com.example.pintapiconv3.models.Cancha
 import com.example.pintapiconv3.models.Direccion
+import com.example.pintapiconv3.models.Horario
 import com.example.pintapiconv3.models.Predio
-import com.example.pintapiconv3.repository.BarrioRepository
+import com.example.pintapiconv3.repository.DireccionRepository
 import com.example.pintapiconv3.repository.PredioRepository
 import com.example.pintapiconv3.utils.Utils.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.junit.Test
 import java.sql.Connection
 import java.sql.SQLException
 
 class NewPredioActivity : AppCompatActivity() {
 
     private val predioRepository = PredioRepository()
+    private val direccionRepository = DireccionRepository()
     private val sqlServerHelper = SQLServerHelper()
-    private val barrioRepository = BarrioRepository()
 
     private var canchasList = mutableListOf<Cancha>()
     private var currentLayout = 0
@@ -213,7 +208,7 @@ class NewPredioActivity : AppCompatActivity() {
     }
 
     private fun loadSpinners() {
-        val barrios = barrioRepository.getBarrios()
+        val barrios = sqlServerHelper.getBarrios()
         val estados = sqlServerHelper.getEstadosPredio()
 
         setSpinners(fieldHood, barrios)
@@ -377,7 +372,7 @@ class NewPredioActivity : AppCompatActivity() {
 
                 if(conn != null) {
                     val idDireccion =
-                        sqlServerHelper.insertDireccionWithConnection(conn, direccion!!)
+                        direccionRepository.insertDireccionWithConnection(conn, direccion!!)
                             ?: throw SQLException("Error al insertar direccion")
                     predio?.idDireccion = idDireccion
 
@@ -431,39 +426,35 @@ class NewPredioActivity : AppCompatActivity() {
 
                 spnerTipoCancha = dialogView.findViewById(R.id.spner_tipo_cancha)
                 etPrecioHora = dialogView.findViewById(R.id.et_precio_hora)
-                btnGuardarCancha = dialogView.findViewById(R.id.btn_guardar_cancha)
 
                 val adapter = ArrayAdapter(this@NewPredioActivity, android.R.layout.simple_spinner_item, tiposCanchas.map {it.second})
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 spnerTipoCancha.adapter = adapter
 
-                val dialogBuilder = AlertDialog.Builder(this@NewPredioActivity)
+                AlertDialog.Builder(this@NewPredioActivity)
                     .setView(dialogView)
                     .setTitle("Agragar cancha")
+                    .setPositiveButton("Agregar") { _, _ ->
+                        val idTipoCancha = spnerTipoCancha.selectedItemPosition + 1
+                        val tipoCancha = spnerTipoCancha.selectedItem.toString()
+                        val precioHora = etPrecioHora.text.toString().toDoubleOrNull()
 
-                val alertDialog = dialogBuilder.create()
-
-                btnGuardarCancha.setOnClickListener {
-                    val idTipoCancha = spnerTipoCancha.selectedItemPosition + 1
-                    val tipoCancha = spnerTipoCancha.selectedItem.toString()
-                    val precioHora = etPrecioHora.text.toString().toDoubleOrNull()
-
-                    if (precioHora != null && precioHora <= 99999.99) {
-                        cancha = Cancha(
-                            idPredio = idPredio,
-                            idTipoCancha = idTipoCancha,
-                            tipoCancha = tipoCancha,
-                            precioHora = precioHora,
-                            disponibilidad = true
-                        )
-
-                        canchaAdapter.addCancha(cancha!!)
-                        showToast("Cancha agregada correctamente")
-                        alertDialog.dismiss()
-                    } else
-                        showToast("Ingrese un precio válido. No puede exceder $99.999")
-                }
-                alertDialog.show()
+                        if (precioHora != null && precioHora <= 99999.99 && precioHora > 0) {
+                            cancha = Cancha(
+                                idPredio = idPredio,
+                                idTipoCancha = idTipoCancha,
+                                tipoCancha = tipoCancha,
+                                precioHora = precioHora,
+                                disponibilidad = true
+                            )
+                            canchaAdapter.addCancha(cancha!!)
+                            canchaAdapter.notifyDataSetChanged()
+                            showToast("Cancha agregada correctamente")
+                        } else
+                            showToast("Ingrese un precio válido. No puede exceder $99.999")
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
             } else {
                 showToast("No hay canchas disponibles para seleccionar")
             }

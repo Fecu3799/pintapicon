@@ -154,63 +154,28 @@ class SQLServerHelper {
         return list
     }
 
-
-    fun insertDireccion(calle: String, numero: Int, idBarrio: Int): Int? {
-        val query = """
-            INSERT INTO direcciones (calle, numero, idBarrio) 
-            OUTPUT INSERTED.id
-            VALUES (?, ?, ?)
-        """
+    fun getBarrios(): List<Pair<Int, String>> {
+        val list = mutableListOf<Pair<Int, String>>()
+        val query = "Select id, descripcion FROM barrios"
 
         try {
             val conn = DBConnection.getConnection()
-            val preparedStatement = conn?.prepareStatement(query)
+            val statement = conn?.createStatement()
+            val resultSet = statement?.executeQuery(query)
 
-            preparedStatement?.setString(1, calle)
-            preparedStatement?.setInt(2, numero)
-            preparedStatement?.setInt(3, idBarrio)
-
-            val resultSet = preparedStatement?.executeQuery()
-            resultSet?.next()
-            val idDireccion = resultSet?.getInt("id")
+            while (resultSet?.next() == true) {
+                val id = resultSet.getInt("id")
+                val descripcion = resultSet.getString("descripcion")
+                list.add(Pair(id, descripcion))
+            }
 
             resultSet?.close()
-            preparedStatement?.close()
+            statement?.close()
             conn?.close()
-
-            return idDireccion
         } catch (e: Exception) {
             e.printStackTrace()
-            return null
         }
+        return list
     }
 
-
-    fun insertDireccionWithConnection(conn: Connection, direccion: Direccion): Int? {
-        val query = """
-            INSERT INTO direcciones (calle, numero, idBarrio) 
-            OUTPUT INSERTED.id
-            VALUES (?, ?, ?)
-        """
-
-        try {
-            val preparedStatement = conn?.prepareStatement(query)
-
-            preparedStatement?.setString(1, direccion.calle)
-            preparedStatement?.setInt(2, direccion.numero)
-            preparedStatement?.setInt(3, direccion.idBarrio)
-
-            val resultSet = preparedStatement?.executeQuery()
-            resultSet?.next()
-            val idDireccion = resultSet?.getInt("id")
-
-            resultSet?.close()
-            preparedStatement?.close()
-
-            return idDireccion
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return null
-        }
-    }
 }

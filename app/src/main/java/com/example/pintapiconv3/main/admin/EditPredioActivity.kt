@@ -1,6 +1,7 @@
 package com.example.pintapiconv3.main.admin
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
@@ -8,19 +9,24 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.pintapiconv3.R
-import com.example.pintapiconv3.database.SQLServerHelper
+import com.example.pintapiconv3.database.DBConnection
 import com.example.pintapiconv3.main.admin.fragments.EditCanchasFragment
 import com.example.pintapiconv3.main.admin.fragments.EditHorariosFragment
 import com.example.pintapiconv3.main.admin.fragments.EditPredioFragment
 import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.Predio
+import com.example.pintapiconv3.repository.DireccionRepository
 import com.example.pintapiconv3.repository.PredioRepository
 import com.example.pintapiconv3.utils.Utils.showToast
+import com.example.pintapiconv3.viewmodel.PredioViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.sql.Connection
+import java.sql.SQLException
 
 class EditPredioActivity : AppCompatActivity() {
 
@@ -30,12 +36,16 @@ class EditPredioActivity : AppCompatActivity() {
     private lateinit var btnAnterior: Button
     private lateinit var btnSiguiente: Button
     private lateinit var btnGuardarCambios: Button
+    private lateinit var btnCancelar: Button
 
     private lateinit var fragmentList: List<Fragment>
 
     private var currentFragmentIndex = 0
 
+    private val direccionRepository = DireccionRepository()
     private val predioRepository = PredioRepository()
+
+    private lateinit var predioViewModel: PredioViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,14 +60,20 @@ class EditPredioActivity : AppCompatActivity() {
         btnAnterior = findViewById(R.id.btn_anterior)
         btnSiguiente = findViewById(R.id.btn_siguiente)
         btnGuardarCambios = findViewById(R.id.btn_guardar_cambios)
+        btnCancelar = findViewById(R.id.btn_cancel)
+
+        predioViewModel = ViewModelProvider(this)[PredioViewModel::class.java]
 
         predio = intent.getSerializableExtra("EXTRA_PREDIO") as Predio
         direccion = intent.getSerializableExtra("EXTRA_DIRECCION") as Direccion
 
+        predioViewModel.updatePredio(predio)
+        predioViewModel.updateDireccion(direccion)
+
         fragmentList = listOf (
-            EditPredioFragment.newInstance(predio, direccion),
-            EditCanchasFragment.newInstance(predio.id),
-            EditHorariosFragment.newInstance(predio.id)
+            EditPredioFragment.newInstance(),
+            EditCanchasFragment.newInstance(),
+            EditHorariosFragment.newInstance()
         )
 
         if(savedInstanceState == null) {
@@ -90,6 +106,10 @@ class EditPredioActivity : AppCompatActivity() {
             }
         }
 
+        btnCancelar.setOnClickListener {
+            finish()
+        }
+
         btnGuardarCambios.setOnClickListener {
             guardarCambios()
         }
@@ -100,16 +120,19 @@ class EditPredioActivity : AppCompatActivity() {
     private fun updateNavigationButtons() {
         when(currentFragmentIndex) {
             0 -> {
+                btnCancelar.visibility = View.VISIBLE
                 btnAnterior.visibility = View.GONE
                 btnSiguiente.visibility = View.VISIBLE
                 btnGuardarCambios.visibility = View.GONE
             }
             fragmentList.size - 1 -> {
+                btnCancelar.visibility = View.GONE
                 btnAnterior.visibility = View.VISIBLE
                 btnSiguiente.visibility = View.GONE
                 btnGuardarCambios.visibility = View.VISIBLE
             }
             else -> {
+                btnCancelar.visibility = View.GONE
                 btnAnterior.visibility = View.VISIBLE
                 btnSiguiente.visibility = View.VISIBLE
                 btnGuardarCambios.visibility = View.GONE
@@ -125,24 +148,67 @@ class EditPredioActivity : AppCompatActivity() {
     }
 
     private fun guardarCambios() {
-        val updatedPredio = (fragmentList[0] as? EditPredioFragment)?.getUpdatedPredio()
-        val updatedDireccion = (fragmentList[0] as? EditPredioFragment)?.getUpdatedDireccion()
+        val updatedPredio = predioViewModel.predio.value
+        val updatedDireccion = predioViewModel.direccion.value
+        val updatedCanchas = predioViewModel.canchas.value
 
-        if(updatedPredio != null && updatedDireccion != null) {
+        if(updatedPredio != null && updatedDireccion != null && updatedCanchas != null) {
             CoroutineScope(Dispatchers.IO).launch {
-                val predioActualizado = predioRepository.updatePredio(updatedPredio)
-                val direccionActualizada = predioRepository.updateDireccion(updatedDireccion)
+                var conn: Connection? = null
 
-                withContext(Dispatchers.Main) {
-                    if(predioActualizado && direccionActualizada) {
-                        showToast("Cambios guardados")
+                try {
+                    conn = DBConnection.getConnection()
+                    conn?.autoCommit = false
+
+                    if(conn != null) {
+                        val direccionActualizada = direccionRepository.updateDireccionWithConnection(conn, updatedDireccion)
+                        if(!direccionActualizada) throw SQLException("Error al actualizar la direccion")
+
+                        val predioActualizado = predioRepository.updatePredioWithConnection(conn, updatedPredio)
+                        if(!predioActualizado) throw SQLException("Error al actualizar el predio")
+
+                        updatedCanchas.forEach { cancha ->
+                            val canchaInsertada = predioRepository.insertCanchaWithConnection(conn, cancha)
+                            if(!canchaInsertada) throw SQLException("Error al guardar cancha ${cancha.tipoCancha}")
+                        }
+
+                        updatedCanchas.forEach { cancha ->
+                            val canchaActualizada = predioRepository.updateCanchaWithConnection(conn, cancha.idPredio, cancha.idTipoCancha, cancha.precioHora)
+                            if(!canchaActualizada) throw SQLException("Error al actualizar cancha ${cancha.tipoCancha}")
+                        }
+
+                        deletedCanchas?.forEach { cancha ->
+                            val canchaEliminada = predioRepository.deleteCancha(cancha.idPredio, cancha.idTipoCancha)
+                            if(!canchaEliminada) throw SQLException("Error al eliminar cancha ${cancha.tipoCancha}")
+                        }
+
+
+
+                        conn.commit()
+
+                        withContext(Dispatchers.Main) {
+                            showToast("Cambios guardados correctamente")
+                            finish()
+                        }
                     } else {
-                        showToast("Error al guardar los cambios")
+                        withContext(Dispatchers.Main) {
+                            showToast("Error al guardar cambios")
+                            Log.e("Database Error", "Database connection null")
+                        }
                     }
+                } catch (e: SQLException) {
+                    conn?.rollback()
+                    withContext(Dispatchers.Main) {
+                        showToast("Error al guardar cambios")
+                        Log.e("Database Error", e.message ?: "Unknown error")
+                    }
+                } finally {
+                    conn?.autoCommit = true
+                    conn?.close()
                 }
             }
         } else {
-            showToast("ERROR: Verifique los datos")
+            showToast("Error. Verifique los datos ingresados")
         }
     }
 }

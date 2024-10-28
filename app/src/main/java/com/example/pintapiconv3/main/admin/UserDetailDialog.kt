@@ -16,16 +16,14 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
-import com.example.pintapiconv3.repository.BarrioRepository
 import com.example.pintapiconv3.repository.UserRepository
-import com.example.pintapiconv3.utils.UserViewModel
-import com.example.pintapiconv3.utils.UserViewModelFactory
+import com.example.pintapiconv3.viewmodel.UserViewModel
+import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 
 class UserDetailDialog : DialogFragment() {
 
     private val sqlServerHelper = SQLServerHelper()
     private val userRepository = UserRepository()
-    private val barrioRepository = BarrioRepository()
 
     private var user: User? = null
     private var userUpdateListener: UserUpdateListener? = null
@@ -122,7 +120,7 @@ class UserDetailDialog : DialogFragment() {
     }
 
     private fun loadSpinners(user: User) {
-        val barrios = barrioRepository.getBarrios() ?: emptyList()
+        val barrios = sqlServerHelper.getBarrios() ?: emptyList()
         val estados = sqlServerHelper.getEstadosCuenta() ?: emptyList()
         val generos = sqlServerHelper.getGeneros() ?: emptyList()
         val habilidades = sqlServerHelper.getHabilidades() ?: emptyList()

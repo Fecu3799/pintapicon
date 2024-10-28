@@ -29,4 +29,8 @@ class EditHorariosFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_edit_horarios, container, false)
     }
 
+    fun getUpdatedHorarios(): List<Pair<String, String>> {
+        return emptyList()
+    }
+
 }

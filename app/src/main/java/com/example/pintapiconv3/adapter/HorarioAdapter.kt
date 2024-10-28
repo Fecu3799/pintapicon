@@ -11,6 +11,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
+import com.example.pintapiconv3.models.Horario
 import java.util.Calendar
 
 class HorarioAdapter : RecyclerView.Adapter<HorarioAdapter.HorarioViewHolder>() {
@@ -123,8 +124,3 @@ class HorarioAdapter : RecyclerView.Adapter<HorarioAdapter.HorarioViewHolder>() 
     }
 }
 
-data class Horario (
-    var dia: String,
-    var horaApertura: String,
-    var horaCierre: String
-)

@@ -15,7 +15,6 @@ import androidx.fragment.app.DialogFragment
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.User
-import com.example.pintapiconv3.repository.BarrioRepository
 import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.Utils.isValidEmail
 import com.example.pintapiconv3.utils.Utils.isValidPassword
@@ -25,7 +24,6 @@ class NewUserDialog : DialogFragment() {
 
     private val sqlServerHelper = SQLServerHelper()
     private val userRepository = UserRepository()
-    private val barrioRepository = BarrioRepository()
 
     private var userCreationListener: UserCreationListener? = null
 
@@ -91,7 +89,7 @@ class NewUserDialog : DialogFragment() {
     }
 
     private fun loadSpinners() {
-        val barrios = barrioRepository.getBarrios()
+        val barrios = sqlServerHelper.getBarrios()
         val estados = sqlServerHelper.getEstadosCuenta()
         val generos = sqlServerHelper.getGeneros()
         val habilidades = sqlServerHelper.getHabilidades()

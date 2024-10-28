@@ -18,8 +18,8 @@ import com.example.pintapiconv3.R
 import com.example.pintapiconv3.databinding.ActivityMainBinding
 import com.example.pintapiconv3.main.LoginActivity
 import com.example.pintapiconv3.repository.UserRepository
-import com.example.pintapiconv3.utils.UserViewModel
-import com.example.pintapiconv3.utils.UserViewModelFactory
+import com.example.pintapiconv3.viewmodel.UserViewModel
+import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import com.example.pintapiconv3.main.user.fragments.HomeFragment
 import com.example.pintapiconv3.main.user.fragments.NotifFragment
 import com.example.pintapiconv3.main.user.fragments.ProfileFragment

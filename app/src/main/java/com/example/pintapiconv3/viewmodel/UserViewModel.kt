@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.utils
+package com.example.pintapiconv3.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

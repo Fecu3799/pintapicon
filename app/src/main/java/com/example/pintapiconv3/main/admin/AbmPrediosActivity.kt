@@ -17,6 +17,7 @@ import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.PredioAdminAdapter
 import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.Predio
+import com.example.pintapiconv3.repository.DireccionRepository
 import com.example.pintapiconv3.repository.PredioRepository
 import com.example.pintapiconv3.utils.Utils.showToast
 import kotlinx.coroutines.CoroutineScope
@@ -30,7 +31,10 @@ class AbmPrediosActivity : AppCompatActivity(), NewPredioActivity.PredioCreation
     private lateinit var btn_atras: View
     private lateinit var btnAgregarPredio: Button
     private lateinit var listViewPredios: ListView
+
     private val predioRepository = PredioRepository()
+    private val direccionRepository = DireccionRepository()
+
     private lateinit var predioAdminAdapter: PredioAdminAdapter
     private var prediosList = mutableListOf<Predio>()
 
@@ -90,7 +94,7 @@ class AbmPrediosActivity : AppCompatActivity(), NewPredioActivity.PredioCreation
     private fun editarPredio(predio: Predio) {
         CoroutineScope(Dispatchers.Main).launch {
             val direccion = withContext(Dispatchers.IO) {
-                predioRepository.getDireccionById(predio.idDireccion)
+                direccionRepository.getDireccionById(predio.idDireccion)
             }
             if(direccion != null) {
                 val intent = Intent(this@AbmPrediosActivity, EditPredioActivity::class.java)
@@ -107,7 +111,7 @@ class AbmPrediosActivity : AppCompatActivity(), NewPredioActivity.PredioCreation
         var direccion: Direccion? = null
         runBlocking {
             withContext(Dispatchers.IO) {
-                direccion = predioRepository.getDireccionById(idDireccion)
+                direccion = direccionRepository.getDireccionById(idDireccion)
             }
         }
         return direccion

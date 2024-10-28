@@ -19,8 +19,8 @@ import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.main.admin.MarkOnMapDialog
 import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.Predio
-import com.example.pintapiconv3.repository.BarrioRepository
 import com.example.pintapiconv3.repository.PredioRepository
+import com.example.pintapiconv3.viewmodel.PredioViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,8 +40,9 @@ class EditPredioFragment : Fragment() {
 
     private lateinit var mapLauncher: ActivityResultLauncher<Intent>
 
+    private lateinit var viewModel: PredioViewModel
+
     private val sqlServerHelper = SQLServerHelper()
-    private val barrioRepository = BarrioRepository()
 
     private lateinit var predio: Predio
     private lateinit var direccion: Direccion
@@ -138,7 +139,7 @@ class EditPredioFragment : Fragment() {
             numeroPredio.setText(direccion.numero.toString())
 
             val barrios = withContext(Dispatchers.IO) {
-                barrioRepository.getBarrios()
+                sqlServerHelper.getBarrios()
             }
 
             val barrioAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, barrios.map { it.second })

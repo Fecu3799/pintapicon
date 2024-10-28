@@ -1,9 +1,9 @@
 package com.example.pintapiconv3.repository
 
-import com.example.pintapiconv3.adapter.Horario
 import com.example.pintapiconv3.database.DBConnection
 import com.example.pintapiconv3.models.Cancha
 import com.example.pintapiconv3.models.Direccion
+import com.example.pintapiconv3.models.Horario
 import com.example.pintapiconv3.models.Predio
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -76,6 +76,48 @@ class PredioRepository {
         return generatedId
     }
 
+    suspend fun updatePredioWithConnection(conn: Connection, predio: Predio): Boolean {
+        var isSuccess = false
+
+        try {
+
+            val query = """
+                UPDATE predios
+                SET nombre = ?, telefono = ?, idEstado = ?, latitud = ?, longitud = ?, url_google_maps = ?
+                WHERE id = ?
+            """.trimIndent()
+
+            val preparedStatement = conn.prepareStatement(query)
+            preparedStatement?.setString(1, predio.nombre)
+            preparedStatement?.setString(2, predio.telefono)
+            preparedStatement?.setInt(3, predio.idEstado)
+            if(predio.latitud != null && predio.longitud != null) {
+                preparedStatement?.setDouble(4, predio.latitud!!)
+                preparedStatement?.setDouble(5, predio.longitud!!)
+            } else {
+                preparedStatement?.setNull(4, Types.DOUBLE)
+                preparedStatement?.setNull(5, Types.DOUBLE)
+            }
+            if(predio.url_google_maps != null) {
+                preparedStatement?.setString(6, predio.url_google_maps)
+            } else {
+                preparedStatement?.setNull(6, Types.VARCHAR)
+            }
+            preparedStatement?.setInt(7, predio.id)
+
+            val rowsAffected = preparedStatement?.executeUpdate() ?: 0
+            isSuccess = rowsAffected > 0
+
+            preparedStatement?.close()
+
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        } finally {
+            conn.close()
+        }
+        return isSuccess
+    }
+
     suspend fun insertCanchaWithConnection(conn: Connection, cancha: Cancha): Boolean {
         val query = """
                 INSERT INTO predios_tipos_canchas (idPredio, idTipoCancha, precio_hora)
@@ -98,6 +140,45 @@ class PredioRepository {
         } catch (e: SQLException) {
             e.printStackTrace()
             false
+        }
+    }
+
+    suspend fun updateCanchaWithConnection(conn: Connection, idPredio: Int, idTipoCancha: Int, nuevoPrecio: Double): Boolean {
+        val query = """
+            UPDATE predios_tipos_canchas
+            SET precio_hora = ?
+            WHERE idPredio = ? AND idTipoCancha = ?
+        """.trimIndent()
+
+        return try {
+            val preparedStatement = conn.prepareStatement(query)
+            preparedStatement?.setDouble(1, nuevoPrecio)
+            preparedStatement?.setInt(2, idPredio)
+            preparedStatement?.setInt(3, idTipoCancha)
+            (preparedStatement?.executeUpdate() ?: 0) > 0
+        } catch (e: SQLException) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun deleteCancha(idPredio: Int, idTipoCancha: Int): Boolean {
+        val query = """
+            DELETE FROM predios_tipos_canchas
+            WHERE idPredio = ? AND idTipoCancha = ?
+        """.trimIndent()
+
+        return try {
+            val conn = DBConnection.getConnection()
+            val preparedStatement = conn?.prepareStatement(query)
+            preparedStatement?.setInt(1, idPredio)
+            preparedStatement?.setInt(2, idTipoCancha)
+            (preparedStatement?.executeUpdate() ?: 0) > 0
+        } catch (e: SQLException) {
+            e.printStackTrace()
+            false
+        } finally {
+            conn?.close()
         }
     }
 
@@ -218,119 +299,8 @@ class PredioRepository {
         return@withContext canchasList
     }
 
-    suspend fun getDireccionById(idDireccion: Int): Direccion? {
-        var direccion: Direccion? = null
-        val query = """
-            SELECT calle, numero, idBarrio
-            FROM direcciones
-            WHERE id = ?
-        """.trimIndent()
-
-        try {
-            val conn = DBConnection.getConnection()
-            val statement = conn?.prepareStatement(query)
-            statement?.setInt(1, idDireccion)
-            val resultSet = statement?.executeQuery()
-
-            if(resultSet?.next() == true) {
-                val calle = resultSet.getString("calle")
-                val numero = resultSet.getInt("numero")
-                val idBarrio = resultSet.getInt("idBarrio")
-
-                direccion = Direccion(
-                    id = idDireccion,
-                    calle = calle,
-                    numero = numero,
-                    idBarrio = idBarrio
-                )
-            }
-
-            resultSet?.close()
-            statement?.close()
-            conn?.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
-        }
-        return direccion
-    }
 
 
-    suspend fun updatePredio(predio: Predio): Boolean {
-        var conn: Connection? = null
-        var isSuccess = false
-
-        try {
-
-            conn = DBConnection.getConnection()
-            val query = """
-                UPDATE predios
-                SET nombre = ?, telefono = ?, idEstado = ?, latitud = ?, longitud = ?, url_google_maps = ?
-                WHERE id = ?
-            """.trimIndent()
-
-            val preparedStatement = conn?.prepareStatement(query)
-            preparedStatement?.setString(1, predio.nombre)
-            preparedStatement?.setString(2, predio.telefono)
-            preparedStatement?.setInt(3, predio.idEstado)
-            if(predio.latitud != null && predio.longitud != null) {
-                preparedStatement?.setDouble(4, predio.latitud!!)
-                preparedStatement?.setDouble(5, predio.longitud!!)
-            } else {
-                preparedStatement?.setNull(4, Types.DOUBLE)
-                preparedStatement?.setNull(5, Types.DOUBLE)
-            }
-            if(predio.url_google_maps != null) {
-                preparedStatement?.setString(6, predio.url_google_maps)
-            } else {
-                preparedStatement?.setNull(6, Types.VARCHAR)
-            }
-            preparedStatement?.setInt(7, predio.id)
-
-            val rowsAffected = preparedStatement?.executeUpdate() ?: 0
-            isSuccess = rowsAffected > 0
-
-            preparedStatement?.close()
-
-        } catch (e: SQLException) {
-            e.printStackTrace()
-        } finally {
-            conn?.close()
-        }
-        return isSuccess
-    }
-
-
-    suspend fun updateDireccion(direccion: Direccion) : Boolean {
-        var conn: Connection? = null
-        var isSuccess = false
-
-        try {
-
-            conn = DBConnection.getConnection()
-            val query = """
-                UPDATE direcciones
-                SET calle = ?, numero = ?, idBarrio = ?
-                WHERE id = ?
-            """.trimIndent()
-
-            val preparedStatement = conn?.prepareStatement(query)
-            preparedStatement?.setString(1, direccion.calle)
-            preparedStatement?.setInt(2, direccion.numero)
-            preparedStatement?.setInt(3, direccion.idBarrio)
-            preparedStatement?.setInt(4, direccion.id)
-
-            val rowsAffected = preparedStatement?.executeUpdate() ?: 0
-            isSuccess = rowsAffected > 0
-
-            preparedStatement?.close()
-
-        } catch (e: SQLException) {
-            e.printStackTrace()
-        } finally {
-            conn?.close()
-        }
-        return isSuccess
-    }
 
     companion object {
         const val OPEN = 5
