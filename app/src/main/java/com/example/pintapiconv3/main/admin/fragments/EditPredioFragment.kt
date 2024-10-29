@@ -14,6 +14,8 @@ import android.widget.Spinner
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.main.admin.MarkOnMapDialog
@@ -44,20 +46,10 @@ class EditPredioFragment : Fragment() {
 
     private val sqlServerHelper = SQLServerHelper()
 
-    private lateinit var predio: Predio
-    private lateinit var direccion: Direccion
-
     companion object {
-        private const val ARG_PREDIO = "ARG_PREDIO"
-        private const val ARG_DIRECCION = "ARG_DIRECCION"
 
-        fun newInstance(predio: Predio, direccion: Direccion) : EditPredioFragment {
-            val fragment = EditPredioFragment()
-            val args = Bundle()
-            args.putSerializable(ARG_PREDIO, predio)
-            args.putSerializable(ARG_DIRECCION, direccion)
-            fragment.arguments = args
-            return fragment
+        fun newInstance() : EditPredioFragment {
+            return EditPredioFragment()
         }
     }
 
@@ -74,11 +66,19 @@ class EditPredioFragment : Fragment() {
 
         initViews()
 
-        predio = arguments?.getSerializable(ARG_PREDIO) as Predio
-        direccion = arguments?.getSerializable(ARG_DIRECCION) as Direccion
+        viewModel = ViewModelProvider(requireActivity())[PredioViewModel::class.java]
 
-        setDataToViews(predio)
-        setDireccionToViews(direccion)
+        viewModel.predio.observe(viewLifecycleOwner, Observer { predio ->
+            predio?.let {
+                setDataToViews(it)
+            }
+        })
+
+        viewModel.direccion.observe(viewLifecycleOwner, Observer { direccion ->
+            direccion?.let {
+                setDireccionToViews(it)
+            }
+        })
 
         mapLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if(result.resultCode == Activity.RESULT_OK) {
@@ -147,30 +147,6 @@ class EditPredioFragment : Fragment() {
             barrioPredio.adapter = barrioAdapter
             barrioPredio.setSelection(direccion.idBarrio - 1)
         }
-    }
-
-    fun getUpdatedPredio(): Predio {
-        predio.let {
-            it.nombre = nombrePredio.text.toString()
-            it.telefono = telefonoPredio.text.toString()
-            it.idEstado = when(estadoPredio.selectedItemPosition) {
-                0 -> PredioRepository.OPEN
-                1 -> PredioRepository.CLOSED
-                2 -> PredioRepository.OUT_OF_SERVICE
-                else -> PredioRepository.ELIMINATED
-            }
-            it.url_google_maps = ubicacionPredio.text.toString()
-        }
-        return predio
-    }
-
-    fun getUpdatedDireccion(): Direccion {
-        direccion.let {
-            it.calle = callePredio.text.toString()
-            it.numero = numeroPredio.text.toString().toInt()
-            it.idBarrio = barrioPredio.selectedItemPosition + 1
-        }
-        return direccion
     }
 
 }

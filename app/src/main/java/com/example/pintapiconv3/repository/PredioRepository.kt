@@ -8,6 +8,7 @@ import com.example.pintapiconv3.models.Predio
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.sql.Connection
+import java.sql.PreparedStatement
 import java.sql.SQLException
 import java.sql.Statement
 import java.sql.Types
@@ -143,7 +144,7 @@ class PredioRepository {
         }
     }
 
-    suspend fun updateCanchaWithConnection(conn: Connection, idPredio: Int, idTipoCancha: Int, nuevoPrecio: Double): Boolean {
+    suspend fun updateCanchaWithConnection(conn: Connection, cancha: Cancha): Boolean {
         val query = """
             UPDATE predios_tipos_canchas
             SET precio_hora = ?
@@ -152,9 +153,9 @@ class PredioRepository {
 
         return try {
             val preparedStatement = conn.prepareStatement(query)
-            preparedStatement?.setDouble(1, nuevoPrecio)
-            preparedStatement?.setInt(2, idPredio)
-            preparedStatement?.setInt(3, idTipoCancha)
+            preparedStatement?.setDouble(1, cancha.precioHora)
+            preparedStatement?.setInt(2, cancha.idPredio)
+            preparedStatement?.setInt(3, cancha.idTipoCancha)
             (preparedStatement?.executeUpdate() ?: 0) > 0
         } catch (e: SQLException) {
             e.printStackTrace()
@@ -162,23 +163,22 @@ class PredioRepository {
         }
     }
 
-    suspend fun deleteCancha(idPredio: Int, idTipoCancha: Int): Boolean {
+    suspend fun deleteCanchaWithConnection(conn: Connection, cancha: Cancha): Boolean {
         val query = """
             DELETE FROM predios_tipos_canchas
             WHERE idPredio = ? AND idTipoCancha = ?
         """.trimIndent()
 
         return try {
-            val conn = DBConnection.getConnection()
-            val preparedStatement = conn?.prepareStatement(query)
-            preparedStatement?.setInt(1, idPredio)
-            preparedStatement?.setInt(2, idTipoCancha)
+            val preparedStatement = conn.prepareStatement(query)
+            preparedStatement?.setInt(1, cancha.idPredio)
+            preparedStatement?.setInt(2, cancha.idTipoCancha)
             (preparedStatement?.executeUpdate() ?: 0) > 0
         } catch (e: SQLException) {
             e.printStackTrace()
             false
         } finally {
-            conn?.close()
+            conn.close()
         }
     }
 
@@ -204,6 +204,32 @@ class PredioRepository {
         } catch (e: SQLException) {
             e.printStackTrace()
             false
+        }
+    }
+
+    suspend fun updateHorarioPredioWithConnection(conn: Connection, horario: Horario) : Boolean {
+        var preparedStatement: PreparedStatement? = null
+        val query = """
+            UPDATE horarios_predio
+            SET hora_apertura = ?, hora_cierre = ?
+            WHERE dia = ? AND idPredio = ?
+        """.trimIndent()
+
+        return try {
+            preparedStatement = conn.prepareStatement(query)
+            preparedStatement?.setString(1, horario.horaApertura)
+            preparedStatement?.setString(2, horario.horaCierre)
+            preparedStatement?.setString(3, horario.dia)
+            preparedStatement?.setInt(4, horario.idPredio)
+
+            val rowAffected = preparedStatement?.executeUpdate()
+
+            rowAffected!! > 0
+        } catch (e: SQLException) {
+            e.printStackTrace()
+            false
+        } finally {
+            preparedStatement?.close()
         }
     }
 

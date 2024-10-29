@@ -12,12 +12,8 @@ class EditHorariosFragment : Fragment() {
     companion object {
         private const val ARG_ID_PREDIO = "ARG_ID_PREDIO"
 
-        fun newInstance(idPredio: Int) : EditHorariosFragment {
-            val fragment = EditHorariosFragment()
-            val args = Bundle()
-            args.putSerializable(ARG_ID_PREDIO, idPredio)
-            fragment.arguments = args
-            return fragment
+        fun newInstance() : EditHorariosFragment {
+            return EditHorariosFragment()
         }
     }
 

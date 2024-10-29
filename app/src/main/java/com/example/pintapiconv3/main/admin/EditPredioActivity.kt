@@ -70,6 +70,13 @@ class EditPredioActivity : AppCompatActivity() {
         predioViewModel.updatePredio(predio)
         predioViewModel.updateDireccion(direccion)
 
+        CoroutineScope(Dispatchers.Main).launch {
+            val canchas = withContext(Dispatchers.IO) {
+                predioRepository.getCanchasByPredio(predio.id)
+            }
+            predioViewModel.updateCanchas(canchas.toMutableList())
+        }
+
         fragmentList = listOf (
             EditPredioFragment.newInstance(),
             EditCanchasFragment.newInstance(),
@@ -151,8 +158,10 @@ class EditPredioActivity : AppCompatActivity() {
         val updatedPredio = predioViewModel.predio.value
         val updatedDireccion = predioViewModel.direccion.value
         val updatedCanchas = predioViewModel.canchas.value
+        val deletedCanchas = predioViewModel.deletedCanchas.value
+        val updatedHorarios = predioViewModel.horarios.value
 
-        if(updatedPredio != null && updatedDireccion != null && updatedCanchas != null) {
+        if(updatedPredio != null && updatedDireccion != null && updatedCanchas != null && updatedHorarios != null) {
             CoroutineScope(Dispatchers.IO).launch {
                 var conn: Connection? = null
 
@@ -167,22 +176,25 @@ class EditPredioActivity : AppCompatActivity() {
                         val predioActualizado = predioRepository.updatePredioWithConnection(conn, updatedPredio)
                         if(!predioActualizado) throw SQLException("Error al actualizar el predio")
 
-                        updatedCanchas.forEach { cancha ->
+                        deletedCanchas?.forEach { cancha ->
+                            val canchasEliminadas = predioRepository.deleteCanchaWithConnection(conn, cancha)
+                            if(!canchasEliminadas) throw SQLException("Error al eliminar cancha ${cancha.tipoCancha}")
+                        }
+
+                        updatedCanchas.filter { it.isNew }.forEach { cancha ->
                             val canchaInsertada = predioRepository.insertCanchaWithConnection(conn, cancha)
                             if(!canchaInsertada) throw SQLException("Error al guardar cancha ${cancha.tipoCancha}")
                         }
 
-                        updatedCanchas.forEach { cancha ->
-                            val canchaActualizada = predioRepository.updateCanchaWithConnection(conn, cancha.idPredio, cancha.idTipoCancha, cancha.precioHora)
+                        updatedCanchas.filter {!it.isNew}.forEach { cancha ->
+                            val canchaActualizada = predioRepository.updateCanchaWithConnection(conn, cancha)
                             if(!canchaActualizada) throw SQLException("Error al actualizar cancha ${cancha.tipoCancha}")
                         }
 
-                        deletedCanchas?.forEach { cancha ->
-                            val canchaEliminada = predioRepository.deleteCancha(cancha.idPredio, cancha.idTipoCancha)
-                            if(!canchaEliminada) throw SQLException("Error al eliminar cancha ${cancha.tipoCancha}")
+                        updatedHorarios.forEach { horario ->
+                            val horarioActualizado = predioRepository.updateHorarioPredioWithConnection(conn, horario)
+                            if(!horarioActualizado) throw SQLException("Error al actualizar horario ${horario.dia}")
                         }
-
-
 
                         conn.commit()
 
@@ -211,4 +223,5 @@ class EditPredioActivity : AppCompatActivity() {
             showToast("Error. Verifique los datos ingresados")
         }
     }
+
 }

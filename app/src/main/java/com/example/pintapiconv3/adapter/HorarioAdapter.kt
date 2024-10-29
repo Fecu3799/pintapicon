@@ -30,7 +30,7 @@ class HorarioAdapter : RecyclerView.Adapter<HorarioAdapter.HorarioViewHolder>() 
 
     init {
         diasDeLaSemana.forEach { dia ->
-            horarios.add(Horario(dia, "", ""))
+            horarios.add(Horario(dia, "", "", 0))
         }
     }
 

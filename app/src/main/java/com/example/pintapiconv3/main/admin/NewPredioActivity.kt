@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.CanchaAdapter
+import com.example.pintapiconv3.adapter.EditCanchaAdapter
 import com.example.pintapiconv3.adapter.HorarioAdapter
 import com.example.pintapiconv3.database.DBConnection
 import com.example.pintapiconv3.database.SQLServerHelper
@@ -469,7 +470,6 @@ class NewPredioActivity : AppCompatActivity() {
 
             val tvHoraApertura = view.findViewById<TextView>(R.id.tv_hora_apertura)
             val tvHoraCierre = view.findViewById<TextView>(R.id.tv_hora_cierre)
-            val spnerEstadoPredio = view.findViewById<Spinner>(R.id.spner_estado_predio)
 
             val horaApertura = tvHoraApertura.text.toString()
             val horaCierre = tvHoraCierre.text.toString()
@@ -477,7 +477,8 @@ class NewPredioActivity : AppCompatActivity() {
             horario = Horario (
                 dia = horarioAdapter.diasDeLaSemana[i],
                 horaApertura = horaApertura,
-                horaCierre = horaCierre
+                horaCierre = horaCierre,
+                idPredio= predio?.id!!
             )
             horariosList.add(horario!!)
         }
@@ -516,7 +517,6 @@ class NewPredioActivity : AppCompatActivity() {
     private lateinit var canchaAdapter: CanchaAdapter
     private lateinit var spnerTipoCancha: Spinner
     private lateinit var etPrecioHora: EditText
-    private lateinit var btnGuardarCancha: Button
 
     private lateinit var horarioAdapter: HorarioAdapter
     private lateinit var rvHorarios: RecyclerView

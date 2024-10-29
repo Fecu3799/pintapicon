@@ -1,6 +1,7 @@
 package com.example.pintapiconv3.main.admin.fragments
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -11,15 +12,14 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
-import com.example.pintapiconv3.adapter.CanchaAdapter
+import com.example.pintapiconv3.adapter.EditCanchaAdapter
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.Cancha
-import com.example.pintapiconv3.models.Direccion
-import com.example.pintapiconv3.models.Predio
-import com.example.pintapiconv3.repository.PredioRepository
+import com.example.pintapiconv3.viewmodel.PredioViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,23 +29,15 @@ class EditCanchasFragment : Fragment() {
 
     private lateinit var btnAgregarCancha: TextView
     private lateinit var rvCanchas: RecyclerView
-    private lateinit var canchaAdapter: CanchaAdapter
+    private lateinit var editCanchaAdapter: EditCanchaAdapter
 
-    private var canchasList = mutableListOf<Cancha>()
-
-    private val predioRepository = PredioRepository()
     private val sqlServerHelper = SQLServerHelper()
-    private var predioId: Int = 0
+
+    private lateinit var viewModel: PredioViewModel
 
     companion object {
-        private const val ARG_ID_PREDIO = "ARG_ID_PREDIO"
-
-        fun newInstance(idPredio: Int) : EditCanchasFragment {
-            val fragment = EditCanchasFragment()
-            val args = Bundle()
-            args.putSerializable(ARG_ID_PREDIO, idPredio)
-            fragment.arguments = args
-            return fragment
+        fun newInstance() : EditCanchasFragment {
+            return EditCanchasFragment()
         }
     }
 
@@ -63,37 +55,30 @@ class EditCanchasFragment : Fragment() {
         rvCanchas = view.findViewById(R.id.rv_canchas)
         btnAgregarCancha = view.findViewById(R.id.btn_agregar_cancha)
 
-        predioId = arguments?.getInt(ARG_ID_PREDIO) ?: 0
+        viewModel = ViewModelProvider(requireActivity())[PredioViewModel::class.java]
 
-        setupRecyclerView()
+        editCanchaAdapter = EditCanchaAdapter(
+            mutableListOf(),
+            onDeleteCancha = { cancha ->
+                viewModel.deleteCancha(cancha)
+            }, onUpdateCanchaPrice = { cancha, nuevoPrecio ->
+                viewModel.updateCanchaPrice(cancha, nuevoPrecio)
+            }
+        )
+        rvCanchas.adapter = editCanchaAdapter
+        rvCanchas.layoutManager = LinearLayoutManager(requireContext())
 
-        cargarCanchas()
+
+        viewModel.canchas.observe(viewLifecycleOwner) { updatedCanchas ->
+            editCanchaAdapter.updateCanchas(updatedCanchas.toMutableList())
+        }
 
         btnAgregarCancha.setOnClickListener {
-            showDialogAddCancha()
+            showAddCanchaDialog()
         }
     }
 
-    private fun setupRecyclerView() {
-        canchaAdapter = CanchaAdapter(canchasList)
-        rvCanchas.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = canchaAdapter
-        }
-    }
-
-    private fun cargarCanchas() {
-        CoroutineScope(Dispatchers.Main).launch {
-            val canchas = withContext(Dispatchers.IO) {
-                predioRepository.getCanchasByPredio(predioId)
-            }
-            canchasList.clear()
-            canchasList.addAll(canchas)
-            canchaAdapter.notifyDataSetChanged()
-        }
-    }
-
-    private fun showDialogAddCancha() {
+    private fun showAddCanchaDialog() {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_new_field, null)
         val spnerTipoCancha: Spinner = dialogView.findViewById(R.id.spner_tipo_cancha)
         val etPrecioHora: EditText = dialogView.findViewById(R.id.et_precio_hora)
@@ -120,14 +105,18 @@ class EditCanchasFragment : Fragment() {
                 val precioHora = etPrecioHora.text.toString().toDoubleOrNull()
 
                 if(precioHora != null && precioHora <= 999999.99 && precioHora > 0) {
-                    val nuevaCancha = Cancha (
-                        idPredio = predioId,
-                        idTipoCancha = idTipoCancha,
-                        tipoCancha = tipoCancha,
-                        precioHora = precioHora,
-                        disponibilidad = true
-                    )
-                    canchaAdapter.addCancha(nuevaCancha)
+                    if(viewModel.predio.value?.id != null && viewModel.predio.value!!.id > 0) {
+                        val nuevaCancha = Cancha (
+                            idPredio = viewModel.predio.value!!.id,
+                            idTipoCancha = idTipoCancha,
+                            tipoCancha = tipoCancha,
+                            precioHora = precioHora,
+                            disponibilidad = true,
+                            isNew = true
+                        )
+                        viewModel.addCancha(nuevaCancha)
+                    } else
+                        Log.e("Error", "No se pudo obtener el id del predio")
                 } else {
                     Toast.makeText(context, "Ingrese un precio valido", Toast.LENGTH_SHORT).show()
                 }
@@ -135,17 +124,4 @@ class EditCanchasFragment : Fragment() {
             .setNegativeButton("Cancelar", null)
             .show()
     }
-
-    fun getNewCanchas(): List<Cancha> {
-        return canchaAdapter.getNewCanchas()
-    }
-
-    fun getUpdatedCanchas(): List<Cancha> {
-        return canchaAdapter.getUpdatedCanchas()
-    }
-
-    fun getDeletedCanchas(): List<Cancha> {
-        return canchaAdapter.getDeletedCanchas()
-    }
-
 }
