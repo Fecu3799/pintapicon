@@ -74,7 +74,11 @@ class EditPredioActivity : AppCompatActivity() {
             val canchas = withContext(Dispatchers.IO) {
                 predioRepository.getCanchasByPredio(predio.id)
             }
+            val horarios = withContext(Dispatchers.IO) {
+                predioRepository.getHorariosByPredio(predio.id)
+            }
             predioViewModel.updateCanchas(canchas.toMutableList())
+            predioViewModel.updateHorarios(horarios.toMutableList())
         }
 
         fragmentList = listOf (
@@ -88,7 +92,6 @@ class EditPredioActivity : AppCompatActivity() {
         }
 
         setupNavigationButtons()
-
     }
 
     override fun onBackPressed() {

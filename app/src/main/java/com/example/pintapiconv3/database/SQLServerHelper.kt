@@ -145,7 +145,6 @@ class SQLServerHelper {
                 list.add(Pair(id, descripcion))
             }
 
-            resultSet?.close()
             statement?.close()
             conn?.close()
         } catch (e: Exception) {

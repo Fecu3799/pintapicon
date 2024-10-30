@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
-class AbmPrediosActivity : AppCompatActivity(), NewPredioActivity.PredioCreationListener {
+class AbmPrediosActivity : AppCompatActivity() {
 
     private lateinit var btn_atras: View
     private lateinit var btnAgregarPredio: Button
@@ -58,12 +58,6 @@ class AbmPrediosActivity : AppCompatActivity(), NewPredioActivity.PredioCreation
 
         btnAgregarPredio.setOnClickListener {
             val intent = Intent(this, NewPredioActivity::class.java)
-            val listener = object : NewPredioActivity.PredioCreationListener {
-                override fun onPredioCreated(newPredio: Predio) {
-                    this.onPredioCreated(newPredio)
-                }
-            }
-            NewPredioActivity.predioCreationListener = listener
             addPredioLauncher.launch(intent)
         }
 
@@ -133,9 +127,4 @@ class AbmPrediosActivity : AppCompatActivity(), NewPredioActivity.PredioCreation
             if(result.resultCode == Activity.RESULT_OK)
             cargarPredios()
         }
-
-    override fun onPredioCreated(newPredio: Predio) {
-        prediosList.add(newPredio)
-        predioAdminAdapter.notifyDataSetChanged()
-    }
 }

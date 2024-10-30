@@ -325,7 +325,43 @@ class PredioRepository {
         return@withContext canchasList
     }
 
+    suspend fun getHorariosByPredio(idPredio: Int): List<Horario> {
+        var conn: Connection? = null
+        val horariosList = mutableListOf<Horario>()
+        val query = """
+            SELECT dia, hora_apertura, hora_cierre
+            FROM horarios_predio
+            WHERE idPredio = ?
+        """.trimIndent()
 
+        try {
+            conn = DBConnection.getConnection()
+            val preparedStatement = conn?.prepareStatement(query)
+            preparedStatement?.setInt(1, idPredio)
+            val resultSet = preparedStatement?.executeQuery()
+
+            while(resultSet?.next() == true) {
+                val dia = resultSet.getString("dia")
+                val horaApertura = resultSet.getString("hora_apertura")
+                val horaCierre = resultSet.getString("hora_cierre")
+
+                val horario = Horario (
+                    dia = dia,
+                    horaApertura = horaApertura,
+                    horaCierre = horaCierre,
+                    idPredio = idPredio
+                )
+
+                horariosList.add(horario)
+            }
+
+            resultSet?.close()
+            preparedStatement?.close()
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+        return horariosList
+    }
 
 
     companion object {

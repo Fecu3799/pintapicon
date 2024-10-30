@@ -61,12 +61,6 @@ class NewPredioActivity : AppCompatActivity() {
     companion object {
         const val REQUEST_LOCATION = 1001
         const val LOCATION_PERMISSION_REQUEST_CODE = 1002
-
-        var predioCreationListener: PredioCreationListener? = null
-    }
-
-    interface PredioCreationListener {
-        fun onPredioCreated(newPredio: Predio)
     }
 
     @Deprecated("Deprecated in Java")
@@ -392,7 +386,8 @@ class NewPredioActivity : AppCompatActivity() {
 
                     conn.commit()
                     withContext(Dispatchers.Main) {
-                        predioCreationListener?.onPredioCreated(predio!!)
+                        val resultIntent = Intent()
+                        setResult(Activity.RESULT_OK, resultIntent)
                         showToast("Predio guardado correctamente")
                         finish()
                     }

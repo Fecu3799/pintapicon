@@ -27,6 +27,10 @@ class PredioViewModel : ViewModel() {
         canchas.value = updatedCanchas
     }
 
+    fun updateHorarios(updatedHorarios: MutableList<Horario>) {
+        horarios.value = updatedHorarios
+    }
+
     fun addCancha(cancha: Cancha) {
         val updatedCanchas = canchas.value ?: mutableListOf()
         updatedCanchas.add(cancha)
