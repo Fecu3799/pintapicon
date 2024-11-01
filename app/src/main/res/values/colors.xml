@@ -16,6 +16,6 @@
     <color name="lessgold">#99EACC23</color>
     <color name="transparent">#33FFFFFF</color>
     <color name="lightgrey">#33464648</color>
-
+    <color name="transparente">#00000000</color>
 
 </resources>

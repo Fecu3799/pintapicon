@@ -17,6 +17,9 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     private val _updateStatus = MutableLiveData<Result<Unit>>()
     val updateStatus: LiveData<Result<Unit>> get() = _updateStatus
 
+    private val _hasTeam = MutableLiveData<Boolean>()
+    val hasTeam: LiveData<Boolean> get() = _hasTeam
+
     fun setUser(user: User) {
         _user.value = user
     }
@@ -27,6 +30,10 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
             val result = userRepository.updateUserDataInDB(user)
             _updateStatus.value = result
         }
+    }
+
+    fun setHasTeam(hasTeam: Boolean) {
+        _hasTeam.value = hasTeam
     }
 
 }

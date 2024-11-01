@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main
+package com.example.pintapiconv3.app
 
 import android.content.Intent
 import android.os.Bundle
@@ -13,9 +13,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.DBConnection
-import com.example.pintapiconv3.main.admin.MainActivityAdmin
-import com.example.pintapiconv3.main.user.MainActivity
-import com.example.pintapiconv3.main.user.SigninActivity
+import com.example.pintapiconv3.app.admin.MainActivityAdmin
+import com.example.pintapiconv3.app.user.MainActivity
+import com.example.pintapiconv3.app.user.SigninActivity
 import com.example.pintapiconv3.utils.LoginResult
 import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.Utils.generateVerificationCode

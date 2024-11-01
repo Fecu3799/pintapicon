@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main.admin
+package com.example.pintapiconv3.app.admin
 
 import android.os.Bundle
 import android.view.View

@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main.user
+package com.example.pintapiconv3.app.user
 
 import android.app.Dialog
 import android.content.Context
@@ -16,14 +16,14 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.databinding.ActivityMainBinding
-import com.example.pintapiconv3.main.LoginActivity
+import com.example.pintapiconv3.app.LoginActivity
 import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import com.example.pintapiconv3.viewmodel.UserViewModelFactory
-import com.example.pintapiconv3.main.user.fragments.HomeFragment
-import com.example.pintapiconv3.main.user.fragments.NotifFragment
-import com.example.pintapiconv3.main.user.fragments.ProfileFragment
-import com.example.pintapiconv3.main.user.fragments.SearchFragment
+import com.example.pintapiconv3.app.user.main.HomeFragment
+import com.example.pintapiconv3.app.user.main.NotifFragment
+import com.example.pintapiconv3.app.user.main.ProfileFragment
+import com.example.pintapiconv3.app.user.main.SearchFragment
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.utils.JWToken
 import com.example.pintapiconv3.utils.Utils.showToast
@@ -51,14 +51,17 @@ class MainActivity : AppCompatActivity() {
         val viewModelFactory = UserViewModelFactory(userRepository)
         userViewModel = ViewModelProvider(this, viewModelFactory)[UserViewModel::class.java]
 
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.frame_layout, HomeFragment())
+                .commit()
+            binding.bottomNav.selectedItemId = R.id.nav_home
+        }
+
         setupUI()
         setupNavigation()
         loadUserData()
 
-        if (savedInstanceState == null) {
-            switchFragment(HomeFragment(), R.string.home)
-            binding.bottomNav.selectedItemId = R.id.nav_home
-        }
     }
 
     private fun setupUI() {
@@ -68,6 +71,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 binding.drawerLayout.openDrawer(GravityCompat.START)
             }
+            checkSession()
         }
 
         binding.bottomNav.setOnItemSelectedListener { item, ->
@@ -80,7 +84,7 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        binding.navMenu.setNavigationItemSelectedListener { item, ->
+        binding.navMenu.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.item_partidos -> { /* Handle partidos action */ }
                 R.id.item_canchas -> { /* Handle canchas action */ }
@@ -91,6 +95,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.item_signout -> logoutUser()
             }
             binding.drawerLayout.closeDrawer(GravityCompat.START)
+            checkSession()
             true
         }
 
@@ -110,10 +115,13 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun switchFragment(fragment: Fragment, titleRes: Int) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.frame_layout, fragment)
-            .commit()
+    private fun switchFragment(fragment: Fragment, titleRes: Int, addToBackStack: Boolean = true) {
+        val transaction = supportFragmentManager.beginTransaction().replace(R.id.frame_layout, fragment)
+        if(addToBackStack) {
+            transaction.addToBackStack(null)
+        }
+        transaction.commit()
+        checkSession()
         binding.mainMenu.tvMainTitle.setText(titleRes)
     }
 
@@ -208,20 +216,13 @@ class MainActivity : AppCompatActivity() {
         dialog?.dismiss()
     }
 
-    override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
-        if(event?.action == MotionEvent.ACTION_DOWN) {
-            val token = userRepository.getSession(this)
-            Log.d("MainActivity", "Token obtenido: $token")
-
-            if(token == null || !JWToken.validateToken(token)) {
-                Log.d("MainActivity", "Token invalido o expirado")
-                showSessionExpiredDialog()
-                return false
-            }
-
-            userRepository.renewSession(this)
+    fun checkSession() {
+        val token = userRepository.getSession(this)
+        if(token == null || !JWToken.validateToken(token)) {
+            Log.d("MainActivity", "Token invalido o expirado")
+            showSessionExpiredDialog()
         }
-
-        return super.dispatchTouchEvent(event)
+        userRepository.renewSession(this)
+        Log.d("MainActivity", "Token renovado")
     }
 }

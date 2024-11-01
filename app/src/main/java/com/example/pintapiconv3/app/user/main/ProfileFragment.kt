@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main.user.fragments
+package com.example.pintapiconv3.app.user.main
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -7,14 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.pintapiconv3.R
 
-class HomeFragment : Fragment() {
+class ProfileFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        val root = inflater.inflate(R.layout.fragment_home, container, false)
-        return root
+        return inflater.inflate(R.layout.fragment_profile, container, false)
     }
+
 }

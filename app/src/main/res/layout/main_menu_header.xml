@@ -9,7 +9,7 @@
     android:gravity="bottom"
     android:clickable="true"
     android:focusable="true"
-    tools:context=".main.user.MainActivity"
+    tools:context=".app.user.MainActivity"
     android:id="@+id/userHeader"
     android:layout_marginTop="25dp">
 

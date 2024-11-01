@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main.admin
+package com.example.pintapiconv3.app.admin
 
 import android.app.Activity
 import android.content.Intent
@@ -24,7 +24,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.CanchaAdapter
-import com.example.pintapiconv3.adapter.EditCanchaAdapter
 import com.example.pintapiconv3.adapter.HorarioAdapter
 import com.example.pintapiconv3.database.DBConnection
 import com.example.pintapiconv3.database.SQLServerHelper

@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main.admin
+package com.example.pintapiconv3.app.admin
 
 import android.app.Activity
 import android.content.Intent
@@ -6,16 +6,13 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ListView
-import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.PredioAdminAdapter
-import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.Predio
 import com.example.pintapiconv3.repository.DireccionRepository
 import com.example.pintapiconv3.repository.PredioRepository
@@ -23,7 +20,6 @@ import com.example.pintapiconv3.utils.Utils.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 class AbmPrediosActivity : AppCompatActivity() {
@@ -99,16 +95,6 @@ class AbmPrediosActivity : AppCompatActivity() {
                 showToast("Error al cargar la direccion del predio")
             }
         }
-    }
-
-    private fun getDireccion(idDireccion: Int): Direccion? {
-        var direccion: Direccion? = null
-        runBlocking {
-            withContext(Dispatchers.IO) {
-                direccion = direccionRepository.getDireccionById(idDireccion)
-            }
-        }
-        return direccion
     }
 
     private fun verDetallesPredio(predio: Predio) {

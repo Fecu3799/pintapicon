@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main.admin.fragments
+package com.example.pintapiconv3.app.admin.editPredioFragments
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

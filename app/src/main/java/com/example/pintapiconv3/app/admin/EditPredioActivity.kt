@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main.admin
+package com.example.pintapiconv3.app.admin
 
 import android.os.Bundle
 import android.util.Log
@@ -12,9 +12,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.DBConnection
-import com.example.pintapiconv3.main.admin.fragments.EditCanchasFragment
-import com.example.pintapiconv3.main.admin.fragments.EditHorariosFragment
-import com.example.pintapiconv3.main.admin.fragments.EditPredioFragment
+import com.example.pintapiconv3.app.admin.editPredioFragments.EditCanchasFragment
+import com.example.pintapiconv3.app.admin.editPredioFragments.EditHorariosFragment
+import com.example.pintapiconv3.app.admin.editPredioFragments.EditPredioFragment
 import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.Predio
 import com.example.pintapiconv3.repository.DireccionRepository

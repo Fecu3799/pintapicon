@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".main.user.fragments.HomeFragment" >
+    tools:context=".app.user.main.HomeFragment" >
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,16 +28,17 @@
                 android:orientation="vertical">
 
                 <ImageButton
-                    android:id="@+id/btn_amigos"
+                    android:id="@+id/btn_equipo"
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:layout_gravity="center"
                     android:background="@drawable/ic_friends_rounded" />
 
                 <TextView
+                    android:id="@+id/txt_btn_equipo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/btn_amigos"
+                    android:text="@string/btn_equipo"
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="@color/black"/>

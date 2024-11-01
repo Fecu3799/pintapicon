@@ -28,7 +28,7 @@
     <string name="btnSignUp">Registrarse</string>
 
     // Home
-    <string name="btn_amigos">Lista de Amigos</string>
+    <string name="btn_equipo">Crear un equipo</string>
     <string name="btn_partido">Nuevo Partido</string>
     <string name="btn_canchas">Lista de Canchas</string>
 

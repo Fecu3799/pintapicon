@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.main.admin.fragments
+package com.example.pintapiconv3.app.admin.editPredioFragments
 
 import android.app.Activity
 import android.content.Intent
@@ -18,7 +18,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.SQLServerHelper
-import com.example.pintapiconv3.main.admin.MarkOnMapDialog
+import com.example.pintapiconv3.app.admin.MarkOnMapDialog
 import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.Predio
 import com.example.pintapiconv3.repository.PredioRepository
