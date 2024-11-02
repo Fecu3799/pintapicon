@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -40,7 +41,18 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_equipo"
         android:layout_width="match_parent"
-        android:layout_height="500dp"/>
+        android:layout_height="550dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/border"
+        android:layout_margin="5dp"/>
 
+    <TextView
+        android:id="@+id/tv_descripcion_equipo"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textStyle="italic"
+        android:textSize="18sp"/>
 
 </LinearLayout>

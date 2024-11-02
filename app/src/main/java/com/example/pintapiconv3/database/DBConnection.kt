@@ -7,7 +7,7 @@ import java.sql.DriverManager
 import java.sql.SQLException
 
 object DBConnection {
-    private const val IP = "192.168.0.110:1433"
+    private const val IP = "192.168.0.112:1433"
     private const val DB = "pintapiconDBv4"
     private const val USERNAME = "facu3799"
     private const val PASSWORD = "3799Fecusql"

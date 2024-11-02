@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_nombre_miembro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nombre del Jugador"
+            android:textStyle="bold"
+            android:textSize="16sp"/>
+
+        <TextView
+            android:id="@+id/tv_habilidad_miembro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Habilidad: Alta"
+            android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/tv_posicion_miembro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Posición: Delantero"
+            android:layout_marginTop="4dp"/>
+
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btn_eliminar_miembro"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:background="@drawable/ic_delete"
+        android:layout_gravity="center"
+        android:layout_marginStart="30dp"/>
+
+
+</LinearLayout>

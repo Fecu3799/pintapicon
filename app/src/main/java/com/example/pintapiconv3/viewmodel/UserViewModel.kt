@@ -1,9 +1,12 @@
 package com.example.pintapiconv3.viewmodel
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.repository.UserRepository
@@ -44,5 +47,20 @@ class UserViewModelFactory(private val userRepository: UserRepository): ViewMode
             return UserViewModel(userRepository) as T
         }
         throw IllegalArgumentException("Uknown ViewModel class")
+    }
+}
+
+object SharedUserData {
+    var userViewModel: UserViewModel? = null
+
+    fun init(viewModelStoreOwner: ViewModelStoreOwner, userRepository: UserRepository) {
+        if(userViewModel == null) {
+            val userViewModelFactory = UserViewModelFactory(userRepository)
+            userViewModel = ViewModelProvider(viewModelStoreOwner, userViewModelFactory)[UserViewModel::class.java]
+        }
+    }
+
+    fun clear() {
+        userViewModel = null
     }
 }

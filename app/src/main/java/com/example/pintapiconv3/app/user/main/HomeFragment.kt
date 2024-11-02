@@ -16,6 +16,7 @@ import com.example.pintapiconv3.R
 import com.example.pintapiconv3.app.user.MainActivity
 import com.example.pintapiconv3.repository.EquipoRepository
 import com.example.pintapiconv3.repository.UserRepository
+import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
@@ -39,8 +40,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val viewModelFactory = UserViewModelFactory(UserRepository())
-        userViewModel = ViewModelProvider(requireActivity(), viewModelFactory)[UserViewModel::class.java]
+
+        userViewModel = SharedUserData.userViewModel!!
 
         teamButton = view.findViewById(R.id.btn_equipo)
         txtTeamButton = view.findViewById(R.id.txt_btn_equipo)

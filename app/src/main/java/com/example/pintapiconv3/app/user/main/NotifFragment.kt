@@ -13,7 +13,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.InvitacionAdapter
+import com.example.pintapiconv3.models.Invitacion
 import com.example.pintapiconv3.repository.EquipoRepository
+import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,11 +40,11 @@ class NotifFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        userViewModel = ViewModelProvider(requireActivity())[UserViewModel::class.java]
+        userViewModel = SharedUserData.userViewModel!!
 
         rvNotificaciones = view.findViewById(R.id.rv_notificaciones)
-        invitacionesAdapter = InvitacionAdapter { invitacionId, accept ->
-            responderInvitacion(invitacionId, accept)
+        invitacionesAdapter = InvitacionAdapter { invitacion, accept ->
+            responderInvitacion(invitacion, accept)
         }
         rvNotificaciones.layoutManager = LinearLayoutManager(requireContext())
         rvNotificaciones.adapter = invitacionesAdapter
@@ -56,7 +58,7 @@ class NotifFragment : Fragment() {
             if(userId != null) {
                 try {
                     val invitaciones = withContext(Dispatchers.IO) {
-                        equipoRepository.getInvitacionesPendientes(userId)
+                        equipoRepository.getPendingInvitations(userId)
                     }
                     invitacionesAdapter.setInvitaciones(invitaciones)
                     Log.d("InvitacionAdapter", "Invitaciones cargadas con éxito: $invitaciones")
@@ -68,12 +70,12 @@ class NotifFragment : Fragment() {
         }
     }
 
-    private fun responderInvitacion(invitacionId: Int, accept: Boolean) {
+    private fun responderInvitacion(invitacion: Invitacion, accept: Boolean) {
         lifecycleScope.launch(Dispatchers.Main) {
             try {
                 val nuevoEstado = if(accept) EquipoRepository.ACCEPTED else EquipoRepository.REJECTED
                 withContext(Dispatchers.IO) {
-                    equipoRepository.actualizarEstadoInvitacion(invitacionId, nuevoEstado)
+                    equipoRepository.acceptTeamInvitation(invitacion.id, invitacion.idEquipo, userViewModel.user.value!!.id, nuevoEstado)
                 }
                 Toast.makeText(requireContext(), if(accept) "Invitacion aceptada" else "Invitacion rechazada", Toast.LENGTH_SHORT).show()
                 cargarInvitacionesPendientes()

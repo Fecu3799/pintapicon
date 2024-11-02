@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.runtime.saved.instance.state)
     implementation(libs.testng)
     implementation(libs.play.services.location)
+    implementation(libs.androidx.ui.desktop)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 

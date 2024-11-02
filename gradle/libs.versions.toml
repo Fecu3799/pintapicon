@@ -19,6 +19,7 @@ playServicesMaps = "19.0.0"
 runtimeSavedInstanceState = "1.0.0-alpha11"
 testng = "6.9.6"
 playServicesLocation = "21.3.0"
+uiDesktop = "1.7.0"
 
 
 [libraries]
@@ -43,6 +44,7 @@ places = { module = "com.google.android.libraries.places:places", version.ref = 
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 testng = { group = "org.testng", name = "testng", version.ref = "testng" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+androidx-ui-desktop = { group = "androidx.compose.ui", name = "ui-desktop", version.ref = "uiDesktop" }
 
 
 [plugins]

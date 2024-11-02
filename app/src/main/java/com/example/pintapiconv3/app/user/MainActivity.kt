@@ -27,6 +27,7 @@ import com.example.pintapiconv3.app.user.main.SearchFragment
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.utils.JWToken
 import com.example.pintapiconv3.utils.Utils.showToast
+import com.example.pintapiconv3.viewmodel.SharedUserData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,8 +49,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val viewModelFactory = UserViewModelFactory(userRepository)
-        userViewModel = ViewModelProvider(this, viewModelFactory)[UserViewModel::class.java]
+        SharedUserData.init(this, userRepository)
+        userViewModel = SharedUserData.userViewModel!!
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
@@ -95,7 +96,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.item_signout -> logoutUser()
             }
             binding.drawerLayout.closeDrawer(GravityCompat.START)
-            checkSession()
+            if(item.itemId != R.id.item_signout) checkSession()
             true
         }
 
@@ -154,7 +155,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun setViewModel(userData: HashMap<String, String>) {
         val user = User (
             id = userData["id"]?.toInt() ?: 0,
@@ -191,9 +191,10 @@ class MainActivity : AppCompatActivity() {
         userRepository.clearUserData(this)
         userRepository.clearSession(this)
 
+        SharedUserData.clear()
+
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
-
         finish()
     }
 
