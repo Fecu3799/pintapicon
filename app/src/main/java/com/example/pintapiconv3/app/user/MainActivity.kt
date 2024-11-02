@@ -24,6 +24,7 @@ import com.example.pintapiconv3.app.user.main.HomeFragment
 import com.example.pintapiconv3.app.user.main.NotifFragment
 import com.example.pintapiconv3.app.user.main.ProfileFragment
 import com.example.pintapiconv3.app.user.main.SearchFragment
+import com.example.pintapiconv3.app.user.main.TeamListDialog
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.utils.JWToken
 import com.example.pintapiconv3.utils.Utils.showToast
@@ -89,7 +90,7 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.item_partidos -> { /* Handle partidos action */ }
                 R.id.item_canchas -> { /* Handle canchas action */ }
-                R.id.item_equipos -> { /* Handle equipos action */ }
+                R.id.item_equipos -> { showTeamListDialog() }
                 R.id.item_amigos -> { /* Handle amigos action */ }
                 R.id.item_ayuda -> { /* Handle ayuda action */ }
                 R.id.item_ajustes -> { /* Handle ajustes action */ }
@@ -180,6 +181,11 @@ class MainActivity : AppCompatActivity() {
         )
 
         userViewModel.setUser(user)
+    }
+
+    private fun showTeamListDialog() {
+        val teamListDialog = TeamListDialog()
+        teamListDialog.show(supportFragmentManager, "TeamListDialog")
     }
 
     private fun redirectToLogin() {

@@ -305,6 +305,72 @@ class EquipoRepository {
         return@withContext false
     }
 
+
+    suspend fun getTeamsByMember(userId: Int): List<Equipo> = withContext(Dispatchers.IO) {
+        val equipos = mutableListOf<Equipo>()
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            val query = """
+                SELECT e.id, e.nombre, e.descripcion, e.idCapitan, c.nombre AS capitan
+                FROM equipos e
+                LEFT JOIN jugadores_equipos j ON e.id = j.idEquipo
+                LEFT JOIN cuentas c ON e.idCapitan = c.id
+                WHERE j.idCuenta = ? AND e.idCapitan != ?
+            """.trimIndent()
+
+            conn?.prepareStatement(query).use { preparedStatement ->
+                preparedStatement?.setInt(1, userId)
+                preparedStatement?.setInt(2, userId)
+                val resultSet = preparedStatement?.executeQuery()
+                while(resultSet != null && resultSet.next()) {
+                    equipos.add(
+                        Equipo(
+                            id = resultSet.getInt("id"),
+                            nombre = resultSet.getString("nombre"),
+                            descripcion = resultSet.getString("descripcion"),
+                            capitan = resultSet.getString("capitan"),
+                            idCapitan = resultSet.getInt("idCapitan")
+                        )
+                    )
+                }
+            }
+        } catch (e: SQLException) {
+            throw SQLException("Error al obtener los equipos del usuario miembro. Detalles: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+        return@withContext equipos
+    }
+
+    suspend fun getTeamDetailsById(teamId: Int): Equipo? = withContext(Dispatchers.IO) {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            val query = "SELECT id, nombre, descripcion FROM equipos WHERE id = ?"
+
+            conn?.prepareStatement(query).use { preparedStatement ->
+                preparedStatement?.setInt(1, teamId)
+                val resultSet = preparedStatement?.executeQuery()
+                if(resultSet?.next() == true) {
+                    val id = resultSet.getInt("id")
+                    val nombre = resultSet.getString("nombre")
+                    val descripcion = resultSet.getString("descripcion")
+
+                    val miembros = getMembersByTeamId(conn!!, id)
+
+                    return@withContext Equipo(id, nombre, descripcion, "", -1, miembros)
+                }
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+            throw SQLException("Error al obtener los detalles del equipo. Detalles: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+        return@withContext null
+    }
+
     companion object {
         const val PENDING = 15
         const val ACCEPTED = 16

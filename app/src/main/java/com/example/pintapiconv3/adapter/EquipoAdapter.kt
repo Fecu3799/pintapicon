@@ -1,5 +1,6 @@
 package com.example.pintapiconv3.adapter
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,11 +12,12 @@ import com.example.pintapiconv3.R
 import com.example.pintapiconv3.models.Miembro
 
 class EquipoAdapter(
-    private val onDeleteMember: (miembroId: Int) -> Unit
+    private val onDeleteMember: ((miembroId: Int) -> Unit)? = null
 ) : RecyclerView.Adapter<EquipoAdapter.EquipoViewHolder>(){
 
     private val miembros = mutableListOf<Miembro>()
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setMiembros(nuevosMiembros: List<Miembro>) {
         miembros.clear()
         val sortedMembers = nuevosMiembros.sortedByDescending { it.isCaptain }
@@ -41,6 +43,7 @@ class EquipoAdapter(
         private val tvPosicion = itemView.findViewById<TextView>(R.id.tv_posicion_miembro)
         private val btnEliminar = itemView.findViewById<ImageButton>(R.id.btn_eliminar_miembro)
 
+        @SuppressLint("SetTextI18n")
         fun bind(miembro: Miembro) {
             tvNombre.text = miembro.nombre
             tvHabilidad.text = "Habilidad: ${miembro.habilidad}"
@@ -52,9 +55,9 @@ class EquipoAdapter(
                 btnEliminar.visibility = View.GONE
             } else {
                 itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.lessdarkgreen))
-                btnEliminar.visibility = View.VISIBLE
+                btnEliminar.visibility = if (onDeleteMember != null) View.VISIBLE else View.GONE
                 btnEliminar.setOnClickListener {
-                    onDeleteMember(miembro.id)
+                    onDeleteMember?.invoke(miembro.id)
                 }
             }
         }
