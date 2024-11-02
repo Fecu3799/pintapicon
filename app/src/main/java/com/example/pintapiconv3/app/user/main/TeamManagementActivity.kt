@@ -117,7 +117,6 @@ class TeamManagementActivity : AppCompatActivity() {
 
 
     private fun cargarEquipo(userId: Int) {
-        // REVISAR ESTA FUNCION. NO ESTA TOMANDO BIEN LOS DATOS DEL EQUIPO
         lifecycleScope.launch(Dispatchers.Main) {
             try {
                 val capitan = userViewModel.user.value?.nombre
@@ -129,7 +128,15 @@ class TeamManagementActivity : AppCompatActivity() {
                     equipoId = equipo.id
                     tvNombreEquipo.text = "Bienvenido a ${equipo.nombre}"
                     tvDescripcionEquipo.text = equipo.descripcion
-                    equipoAdapter.setMiembros(equipo.miembros)
+
+                    val miembrosActualizados = equipo.miembros.map { miembro ->
+                        if(miembro.id == equipo.idCapitan) {
+                            miembro.copy(isCaptain = true)
+                        } else {
+                            miembro
+                        }
+                    }
+                    equipoAdapter.setMiembros(miembrosActualizados)
                     Log.d("TeamManagementActivity/cargarEquipo", "Equipo cargado correctamente")
                 } else {
                     showToast("No se pudo cargar el equipo")

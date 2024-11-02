@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="16dp"
+    android:padding="12dp"
     android:background="@drawable/border">
 
     <LinearLayout
@@ -33,17 +33,17 @@
     <!-- Botón para aceptar la invitación -->
     <ImageButton
         android:id="@+id/btn_aceptar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:background="@drawable/ic_accept"
         android:layout_gravity="center_vertical"
-        android:layout_marginStart="15dp"/>
+        android:layout_marginStart="10dp"/>
 
     <!-- Botón para rechazar la invitación -->
     <ImageButton
         android:id="@+id/btn_rechazar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:background="@drawable/ic_reject"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="10dp"/>

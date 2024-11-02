@@ -18,7 +18,8 @@ class EquipoAdapter(
 
     fun setMiembros(nuevosMiembros: List<Miembro>) {
         miembros.clear()
-        miembros.addAll(nuevosMiembros)
+        val sortedMembers = nuevosMiembros.sortedByDescending { it.isCaptain }
+        miembros.addAll(sortedMembers)
         notifyDataSetChanged()
     }
 
@@ -46,14 +47,16 @@ class EquipoAdapter(
             tvPosicion.text = "Posición: ${miembro.posicion}"
 
             if(miembro.isCaptain) {
+                tvNombre.text = "${miembro.nombre} (Capitán)"
                 itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.lessgold))
                 btnEliminar.visibility = View.GONE
-            }
-
-            btnEliminar.setOnClickListener {
-                onDeleteMember(miembro.id)
+            } else {
+                itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.lessdarkgreen))
+                btnEliminar.visibility = View.VISIBLE
+                btnEliminar.setOnClickListener {
+                    onDeleteMember(miembro.id)
+                }
             }
         }
     }
-
 }

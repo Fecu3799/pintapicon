@@ -5,5 +5,6 @@ data class Equipo(
     val nombre: String,
     val descripcion: String,
     val capitan: String,
+    val idCapitan: Int,
     val miembros: List<Miembro> = emptyList()
 )

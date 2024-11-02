@@ -74,26 +74,22 @@ class EquipoRepository {
         }
     }
 
-    private suspend fun getMemberId(email: String): Int = withContext(Dispatchers.IO) {
-        var conn: Connection? = null
+    private suspend fun getMemberId(conn: Connection, email: String): Int {
         var idUsuario = 0
         try {
-            conn = DBConnection.getConnection()
             val query1 = "SELECT id FROM cuentas WHERE email = ?"
-            conn?.prepareStatement(query1).use { preparedStatement ->
+            conn.prepareStatement(query1).use { preparedStatement ->
                 preparedStatement?.setString(1, email)
                 val resultSet = preparedStatement?.executeQuery()
                 if(resultSet?.next() == true)
                     idUsuario = resultSet.getInt("id")
                 else
                     throw SQLException("Usuario con email $email no encontrado")
-                return@withContext idUsuario
             }
         } catch (e: SQLException) {
             throw SQLException("Error al obtener el ID del usuario. Detalles: ${e.message}")
-        } finally {
-            conn?.close()
         }
+        return idUsuario
     }
 
     suspend fun inviteUserToTeam(idEquipo: Int, idCapitan: Int, email: String): Boolean {
@@ -101,11 +97,12 @@ class EquipoRepository {
             var conn: Connection? = null
             try {
                 conn = DBConnection.getConnection()
+                conn?.autoCommit = false
 
                 val query = "INSERT INTO invitaciones_equipos (idEquipo, idCuenta, idEstado, fecha_invitacion, idCapitan) VALUES (?,?,?, CURRENT_TIMESTAMP, ?)"
-                val idUsuario = getMemberId(email)
+                val idUsuario = getMemberId(conn!!, email)
 
-                conn?.prepareStatement(query).use { preparedStatement ->
+                conn.prepareStatement(query).use { preparedStatement ->
                     preparedStatement?.setInt(1, idEquipo)
                     preparedStatement?.setInt(2, idUsuario)
                     preparedStatement?.setInt(3, PENDING)
@@ -113,18 +110,14 @@ class EquipoRepository {
                     preparedStatement?.executeUpdate()
                 }
 
-                conn?.commit()
+                conn.commit()
                 return@withContext true
             } catch (e: SQLException) {
                 conn?.rollback()
                 throw SQLException("Error al invitar al usuario al equipo. Detalles: ${e.message}")
             } finally {
-                try {
-                    conn?.close()
-                } catch (e: SQLException) {
-                    e.printStackTrace()
-                    throw SQLException("Error al cerrar la conexión. Detalles: ${e.message}")
-                }
+                conn?.autoCommit = true
+                conn?.close()
             }
         }
     }
@@ -220,9 +213,9 @@ class EquipoRepository {
                     val nombre = resultSet.getString("nombre")
                     val descripcion = resultSet.getString("descripcion")
 
-                    val miembros = getMembersByTeamId(id)
+                    val miembros = getMembersByTeamId(conn!!, id)
 
-                    return@withContext Equipo(id, nombre, descripcion, capitan, miembros)
+                    return@withContext Equipo(id, nombre, descripcion, capitan, userId, miembros)
                 }
             }
         } catch (e: SQLException) {
@@ -234,11 +227,9 @@ class EquipoRepository {
         return@withContext null
     }
 
-    private suspend fun getMembersByTeamId(teamId: Int): List<Miembro> {
+    private suspend fun getMembersByTeamId(conn: Connection, teamId: Int): List<Miembro> {
         val miembros = mutableListOf<Miembro>()
-        var conn: Connection? = null
         try {
-            conn = DBConnection.getConnection()
             val query = """
                 SELECT c.id AS id,
                        c.nombre AS nombre,
@@ -251,7 +242,7 @@ class EquipoRepository {
                 WHERE j.idEquipo = ?
             """.trimIndent()
 
-            conn?.prepareStatement(query).use { preparedStatement ->
+            conn.prepareStatement(query).use { preparedStatement ->
                 preparedStatement?.setInt(1, teamId)
                 val resultSet = preparedStatement?.executeQuery()
                 while(resultSet != null && resultSet.next()) {
@@ -266,8 +257,6 @@ class EquipoRepository {
         } catch (e: SQLException) {
             e.printStackTrace()
             throw SQLException("Error al obtener los miembros del equipo. Detalles: ${e.message}")
-        } finally {
-            conn?.close()
         }
         return miembros
     }
@@ -281,11 +270,7 @@ class EquipoRepository {
             conn?.prepareStatement(query).use { preparedStatement ->
                 preparedStatement?.setInt(1, miembroId)
                 val rowsAffected = preparedStatement?.executeUpdate()
-                if(rowsAffected != null && rowsAffected > 0) {
-                    return@withContext true
-                } else {
-                    return@withContext false
-                }
+                return@withContext rowsAffected != null && rowsAffected > 0
             }
         } catch (e: SQLException) {
             throw SQLException("Error al eliminar el miembro del equipo. Detalles: ${e.message}")
@@ -299,13 +284,14 @@ class EquipoRepository {
     }
 
     suspend fun isMember(teamId: Int, email: String): Boolean = withContext(Dispatchers.IO) {
-        var conn: Connection? = null
+        val conn: Connection?
         try {
             val query = "SELECT COUNT(*) FROM jugadores_equipos WHERE idEquipo = ? AND idCuenta = ?"
-            val userId = getMemberId(email)
             conn = DBConnection.getConnection()
 
-            conn?.prepareStatement(query).use { preparedStatement ->
+            val userId = getMemberId(conn!!, email)
+
+            conn.prepareStatement(query).use { preparedStatement ->
                 preparedStatement?.setInt(1, teamId)
                 preparedStatement?.setInt(2, userId)
                 val resultSet = preparedStatement?.executeQuery()
