@@ -1,5 +1,6 @@
 package com.example.pintapiconv3.app.admin
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -181,8 +182,6 @@ class NewPredioActivity : AppCompatActivity() {
         fieldState = findViewById(R.id.spner_fieldState)
         markOnMap = findViewById(R.id.btn_markOnMap)
         googleMapsUrl = findViewById(R.id.et_googleMapsUrl)
-        fieldLatitude = findViewById(R.id.et_fieldLatitude)
-        fieldLongitude = findViewById(R.id.et_fieldLongitude)
 
         tvNombrePredio = findViewById(R.id.tv_nombre_predio)
         rvCanchas = findViewById(R.id.rv_canchas)
@@ -218,7 +217,6 @@ class NewPredioActivity : AppCompatActivity() {
     }
 
     private fun nextLayout() {
-
         when(currentLayout) {
             0 -> {
                 layoutAltaPredio.animate()
@@ -239,7 +237,6 @@ class NewPredioActivity : AppCompatActivity() {
                     .start()
                 currentLayout = 1
             }
-
             1 -> {
                 layoutAgregarCancha.animate()
                     .translationX(-layoutAgregarCancha.width.toFloat())
@@ -301,7 +298,6 @@ class NewPredioActivity : AppCompatActivity() {
                 currentLayout = 1
             }
         }
-
     }
 
     private fun validateFields(): String {
@@ -314,7 +310,7 @@ class NewPredioActivity : AppCompatActivity() {
             error = "Por favor ingrese la calle del predio"
         else if(fieldNumber.text.isEmpty())
             error = "Por favor ingrese el numero del predio"
-        else if(googleMapsUrl.text.isEmpty() && (fieldLatitude.text.trim().isEmpty() || fieldLongitude.text.trim().isEmpty()))
+        else if(googleMapsUrl.text.isEmpty())
             error = "Por favor ingrese la ubicacion del predio"
 
         return error
@@ -340,9 +336,7 @@ class NewPredioActivity : AppCompatActivity() {
             telefono = fieldPhoneNumber.text.toString(),
             idDireccion = 0,
             idEstado = if(fieldState.selectedItemPosition == 0) PredioRepository.OPEN else PredioRepository.CLOSED,
-            url_google_maps = if (googleMapsUrl.text.isEmpty()) null else googleMapsUrl.text.toString(),
-            latitud = if (fieldLatitude.text.isEmpty()) null else fieldLatitude.text.toString().toDouble(),
-            longitud = if (fieldLongitude.text.isEmpty()) null else fieldLongitude.text.toString().toDouble(),
+            url_google_maps = if (googleMapsUrl.text.isEmpty()) null else googleMapsUrl.text.toString()
         )
 
         direccion = Direccion(
@@ -408,11 +402,15 @@ class NewPredioActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun showDialogNewField(idPredio: Int) {
 
         CoroutineScope(Dispatchers.Main).launch {
             val tiposCanchas = withContext(Dispatchers.IO) {
                 sqlServerHelper.getTipoCanchas()
+            }
+            val cantCanchas = withContext(Dispatchers.IO) {
+                predioRepository.getCanchasByPredio(idPredio)
             }
 
             if(tiposCanchas.isNotEmpty()) {
@@ -436,9 +434,11 @@ class NewPredioActivity : AppCompatActivity() {
 
                         if (precioHora != null && precioHora <= 99999.99 && precioHora > 0) {
                             cancha = Cancha(
+                                id = 0,
                                 idPredio = idPredio,
                                 idTipoCancha = idTipoCancha,
                                 tipoCancha = tipoCancha,
+                                nroCancha = "Cancha ${cantCanchas.size + 1}",
                                 precioHora = precioHora,
                                 disponibilidad = true
                             )
@@ -503,8 +503,6 @@ class NewPredioActivity : AppCompatActivity() {
     private lateinit var fieldState: Spinner
     private lateinit var markOnMap: Button
     private lateinit var googleMapsUrl: EditText
-    private lateinit var fieldLatitude: EditText
-    private lateinit var fieldLongitude: EditText
 
     private lateinit var tvNombrePredio: TextView
     private lateinit var rvCanchas: RecyclerView

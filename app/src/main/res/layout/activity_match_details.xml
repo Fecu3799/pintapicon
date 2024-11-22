@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".app.user.main.MatchDetailsActivity"
+    android:background="@drawable/background_matchdetails">
+
+    <TextView
+        android:id="@+id/tv_estado_partido"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="1 Dia : 2 Hs : 30 Min"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:padding="16dp"
+        android:background="@drawable/border_rect_white"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginVertical="5dp">
+
+            <TextView
+                android:id="@+id/tv_predio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Predio: -"
+                android:textSize="18sp"
+                android:textColor="@color/white"
+                />
+
+            <TextView
+                android:id="@+id/tv_mapa"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ver mapa"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginStart="10dp"
+                android:focusable="true"
+                android:clickable="true"
+                android:textColor="@color/white"
+                />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_cancha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancha: -"
+            android:textSize="18sp"
+            android:layout_marginVertical="5dp"
+            android:textColor="@color/white"
+            />
+
+        <TextView
+            android:id="@+id/tv_tipo_partido"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tipo de partido: -"
+            android:textSize="18sp"
+            android:layout_marginVertical="5dp"
+            android:textColor="@color/white"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="180dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@drawable/border_rect_white">
+
+            <TextView
+                android:id="@+id/btn_invitar_jugador"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Invitar jugadores"
+                android:layout_margin="8dp"
+                android:background="@drawable/border_white"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="2dp"
+                android:focusable="true"
+                android:clickable="true"
+                android:textColor="@color/white"
+                />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_participantes"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"/>
+
+        </LinearLayout>
+
+
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Detalles de la reserva"
+                android:textSize="22sp"
+                android:layout_gravity="center"
+                android:textStyle="bold"
+                android:layout_marginBottom="15dp"
+                android:textColor="@color/white"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fecha y hora"
+                android:textSize="16sp"
+                android:layout_gravity="center"
+                android:layout_marginVertical="5dp"
+                android:textColor="@color/white"
+                />
+
+            <TextView
+                android:id="@+id/tv_fecha_hora"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fecha y hora"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:layout_marginBottom="20dp"
+                android:textColor="@color/white"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Precio total"
+                android:textSize="16sp"
+                android:layout_gravity="center"
+                android:layout_marginVertical="5dp"
+                android:textColor="@color/white"
+                />
+
+            <TextView
+                android:id="@+id/tv_monto_total"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Precio total"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:layout_marginBottom="20dp"
+                android:textColor="@color/white"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Precio por persona"
+                android:textSize="16sp"
+                android:layout_gravity="center"
+                android:layout_marginVertical="5dp"
+                android:textColor="@color/white"
+                />
+
+            <TextView
+                android:id="@+id/tv_monto_por_persona"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Precio por persona"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:layout_marginBottom="20dp"
+                android:textColor="@color/white"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Monto acumulado"
+                android:textSize="16sp"
+                android:layout_gravity="center"
+                android:layout_marginVertical="5dp"
+                android:textColor="@color/white"
+                />
+
+            <TextView
+                android:id="@+id/tv_monto_acumulado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Monto acumulado"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:layout_marginBottom="30dp"
+                android:textColor="@color/white"
+                />
+
+            <Button
+                android:id="@+id/btn_pagar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Agregar fondos"
+                android:layout_gravity="center"
+                android:layout_marginBottom="10dp"
+                android:textColor="@color/white"
+                />
+
+            <TextView
+                android:id="@+id/tv_estado_reserva"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Estado de la reserva"
+                android:layout_gravity="center"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="30dp"
+                android:textColor="@color/white"
+                />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/white"
+                android:layout_marginBottom="25dp"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_suspender"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Suspender"
+                android:textStyle="bold"
+                android:background="@color/red"
+                android:layout_gravity="center"
+                android:textColor="@color/white"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="400dp"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:padding="5dp">
+
+    <LinearLayout
+        android:id="@+id/layout_detalles_partido"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar fecha y hora:"
+            android:textSize="16sp"
+            android:layout_gravity="left"
+            android:layout_margin="10dp"
+            android:textStyle="bold"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btn_seleccionar_fecha"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fecha"
+                android:layout_marginEnd="20dp"/>
+
+            <Button
+                android:id="@+id/btn_seleccionar_hora"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hora"
+                android:layout_marginStart="20dp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/tv_fecha_seleccionada"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fecha seleccionada"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="-"
+                android:textSize="20sp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/tv_hora_seleccionada"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hora seleccionada"
+                android:layout_gravity="center"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar tipo de cancha:"
+            android:textSize="16sp"
+            android:layout_margin="10dp"
+            android:textStyle="bold"/>
+
+        <Spinner
+            android:id="@+id/spner_seleccionar_tipo_cancha"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar privacidad del partido:"
+            android:textSize="16sp"
+            android:layout_margin="10dp"
+            android:textStyle="bold"/>
+
+        <RadioGroup
+            android:id="@+id/rg_seleccionar_privacidad"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/rb_privado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Privado"
+                android:layout_marginEnd="15dp"/>
+
+            <RadioButton
+                android:id="@+id/rb_publico"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Público"
+                android:layout_marginStart="15dp"/>
+
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar tipo de partido:"
+            android:textSize="16sp"
+            android:layout_margin="10dp"
+            android:textStyle="bold"/>
+
+        <RadioGroup
+            android:id="@+id/rg_seleccionar_tipo"
+            android:layout_width="380dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/rb_masculino"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Masculino" />
+
+            <RadioButton
+                android:id="@+id/rb_femenino"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Femenino"
+                android:layout_marginHorizontal="10dp"/>
+
+            <RadioButton
+                android:id="@+id/rb_mixto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mixto" />
+
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar método de pago:"
+            android:textSize="16sp"
+            android:layout_margin="10dp"
+            android:textStyle="bold"/>
+
+        <RadioGroup
+            android:id="@+id/rg_seleccionar_metodo_pago"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_marginBottom="5dp">
+
+            <RadioButton
+                android:id="@+id/rb_efectivo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Efectivo"
+                android:layout_marginHorizontal="5dp"/>
+
+            <RadioButton
+                android:id="@+id/rb_transferencia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Transferencia"
+                android:layout_marginHorizontal="5dp"/>
+
+            <RadioButton
+                android:id="@+id/rb_online"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Online"
+                android:layout_marginHorizontal="5dp"/>
+
+        </RadioGroup>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btn_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancelar"
+                android:layout_marginEnd="25dp"/>
+
+            <Button
+                android:id="@+id/btn_next"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Siguiente"
+                android:layout_marginStart="25dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/layout_cancha_partido"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar cancha"
+            android:textSize="16sp"
+            android:layout_gravity="center"
+            android:layout_margin="20dp"
+            android:textStyle="bold"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_seleccionar_canchas"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:layout_weight="1"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btn_atras"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Atras"
+                android:layout_marginEnd="15dp"/>
+
+            <Button
+                android:id="@+id/btn_create"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Crear partido"
+                android:layout_marginStart="15dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>
+

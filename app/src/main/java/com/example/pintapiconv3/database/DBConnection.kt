@@ -7,24 +7,14 @@ import java.sql.DriverManager
 import java.sql.SQLException
 
 object DBConnection {
-    private const val IP = "192.168.0.112:1433"
-    private const val DB = "pintapiconDBv4"
+    private const val IP = "192.168.0.107:1433"
+    private const val DB = "pintapiconDBv5"
     private const val USERNAME = "facu3799"
     private const val PASSWORD = "3799Fecusql"
 
     private var connection: Connection? = null
 
-
-    // Método para obtener la conexión
     fun getConnection(): Connection? {
-        if (connection == null || connection!!.isClosed) {
-            connection = createConnection()
-        }
-        return connection
-    }
-
-    // Método privado para crear la conexión
-    private fun createConnection(): Connection? {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
         Log.d("DatabaseConnection", "Attempting to establish a connection")

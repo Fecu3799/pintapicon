@@ -5,5 +5,5 @@ data class Miembro(
     val nombre: String,
     val habilidad: String,
     val posicion: String,
-    val isCaptain: Boolean = false
+    var isCaptain: Boolean = false
 )

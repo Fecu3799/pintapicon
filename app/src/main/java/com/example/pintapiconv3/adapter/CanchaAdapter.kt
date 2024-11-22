@@ -10,7 +10,9 @@ import com.example.pintapiconv3.R
 import com.example.pintapiconv3.models.Cancha
 import java.text.DecimalFormat
 
-class CanchaAdapter(private val canchaList: MutableList<Cancha>) : RecyclerView.Adapter<CanchaAdapter.CanchaViewHolder>() {
+class CanchaAdapter(
+    private val canchaList: MutableList<Cancha>
+) : RecyclerView.Adapter<CanchaAdapter.CanchaViewHolder>() {
 
     class CanchaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tipoCancha: TextView = itemView.findViewById(R.id.tv_tipo_cancha)

@@ -225,65 +225,6 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_gravity="center"
-            android:layout_marginVertical="10dp"
-            android:gravity="center">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="o ingresar manualmente las coordenadas"
-                android:gravity="center"
-                android:textStyle="bold"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
-
-            <TextView
-                android:layout_width="150dp"
-                android:layout_height="45dp"
-                android:text="Latitud"
-                android:gravity="start|center" />
-
-            <EditText
-                android:id="@+id/et_fieldLatitude"
-                android:layout_width="200dp"
-                android:layout_height="45dp"
-                android:textSize="14sp"
-                android:gravity="center"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
-
-            <TextView
-                android:layout_width="150dp"
-                android:layout_height="45dp"
-                android:text="Longitud"
-                android:gravity="start|center" />
-
-            <EditText
-                android:id="@+id/et_fieldLongitude"
-                android:layout_width="200dp"
-                android:layout_height="45dp"
-                android:textSize="14sp"
-                android:gravity="center"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:layout_marginVertical="10dp"
             android:orientation="horizontal"
             android:gravity="center">

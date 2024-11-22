@@ -41,13 +41,11 @@ class EditPredioFragment : Fragment() {
     private lateinit var btnMarkOnMap: Button
 
     private lateinit var mapLauncher: ActivityResultLauncher<Intent>
-
     private lateinit var viewModel: PredioViewModel
 
     private val sqlServerHelper = SQLServerHelper()
 
     companion object {
-
         fun newInstance() : EditPredioFragment {
             return EditPredioFragment()
         }
@@ -91,7 +89,6 @@ class EditPredioFragment : Fragment() {
             val intent = Intent(context, MarkOnMapDialog::class.java)
             mapLauncher.launch(intent)
         }
-
     }
 
     private fun initViews() {
@@ -104,7 +101,6 @@ class EditPredioFragment : Fragment() {
         estadoPredio = requireView().findViewById(R.id.sp_estado_predio)
         ubicacionPredio = requireView().findViewById(R.id.tv_ubicacion_predio)
         btnMarkOnMap = requireView().findViewById(R.id.btn_mark_on_map)
-
     }
 
     private fun setDataToViews(predio: Predio) {
@@ -148,5 +144,4 @@ class EditPredioFragment : Fragment() {
             barrioPredio.setSelection(direccion.idBarrio - 1)
         }
     }
-
 }

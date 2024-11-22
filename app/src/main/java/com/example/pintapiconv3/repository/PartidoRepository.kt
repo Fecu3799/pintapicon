@@ -1,0 +1,520 @@
+package com.example.pintapiconv3.repository
+
+import com.example.pintapiconv3.database.DBConnection
+import com.example.pintapiconv3.database.SQLServerHelper
+import com.example.pintapiconv3.models.Cancha
+import com.example.pintapiconv3.models.Miembro
+import com.example.pintapiconv3.models.Participante
+import com.example.pintapiconv3.models.Partido
+import com.example.pintapiconv3.models.Reserva
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.sql.Connection
+import java.sql.SQLException
+
+class PartidoRepository {
+
+    private val equipoRepository = EquipoRepository()
+
+    suspend fun hasMatch(userId: Int): Boolean = withContext(Dispatchers.IO) {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            val query = """
+                SELECT COUNT(*) FROM partidos
+                WHERE idOrganizador = ?
+                AND idEstado IN (?, ?, ?)
+            """.trimIndent()
+
+            conn?.prepareStatement(query).use { preparedStatement ->
+                preparedStatement?.setInt(1, userId)
+                preparedStatement?.setInt(2, MatchState.PENDING)
+                preparedStatement?.setInt(3, MatchState.CONFIRMED)
+                preparedStatement?.setInt(4, MatchState.IN_COURSE)
+                val resultSet = preparedStatement?.executeQuery()
+                if(resultSet?.next() == true) {
+                    return@withContext resultSet.getInt(1) > 0
+                }
+            }
+        } catch (e: SQLException) {
+            throw SQLException("Error al verificar si el usuario tiene un partido: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+        return@withContext false
+    }
+
+    suspend fun crearPartidoConReserva(partido: Partido, reserva: Reserva): Int = withContext(Dispatchers.IO) {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            conn?.autoCommit = false
+
+            val query1 = """
+                INSERT INTO partidos (fecha, hora, isPublic, idOrganizador, idCancha, idTipoPartido, idEstado)
+                OUTPUT INSERTED.id
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """.trimIndent()
+
+            val query2 = """
+                INSERT INTO reservas (fecha_reserva, hora_inicio, hora_fin, monto, idMetodoPago, idEstado, idPredio, idPartido, idCancha)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """.trimIndent()
+
+            val query3 = """
+                INSERT INTO participantes (isOrganizador, montoPagado, montoRestante, idParticipante, idPartido, idEstado)
+                    VALUES (?, ?, ?, ?, ?, ?)
+            """.trimIndent()
+
+
+            var partidoId = 0
+            conn?.prepareStatement(query1).use { preparedStatement ->
+                preparedStatement?.setString(1, partido.fecha)
+                preparedStatement?.setString(2, partido.hora)
+                preparedStatement?.setBoolean(3, partido.isPublic)
+                preparedStatement?.setInt(4, partido.idOrganizador)
+                preparedStatement?.setInt(5, partido.idCancha)
+                preparedStatement?.setInt(6, partido.idTipoPartido)
+                preparedStatement?.setInt(7, partido.idEstado)
+                val resultSet = preparedStatement?.executeQuery()
+                if(resultSet?.next() == true) {
+                    partidoId = resultSet.getInt("id")
+                } else {
+                    throw SQLException("No se pudo obtener el ID del partido")
+                }
+            }
+
+            reserva.idPartido = partidoId
+            conn?.prepareStatement(query2).use { preparedStatement ->
+                preparedStatement?.setString(1, reserva.fecha)
+                preparedStatement?.setString(2, reserva.horaInicio)
+                preparedStatement?.setString(3, reserva.horaFin)
+                preparedStatement?.setDouble(4, reserva.monto)
+                preparedStatement?.setInt(5, reserva.idMetodoPago)
+                preparedStatement?.setInt(6, reserva.idEstado)
+                preparedStatement?.setInt(7, reserva.idPredio)
+                preparedStatement?.setInt(8, reserva.idPartido)
+                preparedStatement?.setInt(9, reserva.idCancha)
+                preparedStatement?.executeUpdate()
+            }
+
+            conn?.prepareStatement(query3).use { preparedStatement ->
+                preparedStatement?.setBoolean(1, true)
+                preparedStatement?.setDouble(2, 0.0)
+                preparedStatement?.setDouble(3, 0.0)
+                preparedStatement?.setInt(4, partido.idOrganizador)
+                preparedStatement?.setInt(5, reserva.idPartido)
+                preparedStatement?.setInt(6, PaymentState.PENDING_PAYMENT)
+                preparedStatement?.executeUpdate()
+            }
+
+            conn?.commit()
+            return@withContext partidoId
+        } catch (e: SQLException) {
+            conn?.rollback()
+            throw SQLException("Error al crear el partido con reserva: ${e.message}")
+        } finally {
+            conn?.autoCommit = true
+            conn?.close()
+        }
+    }
+
+    suspend fun getCanchasByTipoYHorario(idTipoCancha: Int, fechaReserva: String, horaReserva: String): List<Cancha> = withContext(Dispatchers.IO) {
+        var conn: Connection? = null
+        val canchasDisponibles = mutableListOf<Cancha>()
+
+        try {
+            conn = DBConnection.getConnection()
+            val query = """
+                SELECT c.*, t.descripcion AS tipoCancha, p.nombre AS nombrePredio,
+                    CASE 
+                        WHEN r.id IS NULL THEN 1 
+                        ELSE 0
+                    END AS disponible
+                FROM canchas c
+                LEFT JOIN reservas r ON c.id = r.idCancha
+                AND r.fecha_reserva = ?
+                AND (? BETWEEN r.hora_inicio AND r.hora_fin)
+                LEFT JOIN tipos_canchas t ON c.idTipoCancha = t.id
+                LEFT JOIN predios p ON c.idPredio = p.id
+                WHERE c.idTipoCancha = ?
+                ORDER BY disponible DESC;
+            """.trimIndent()
+
+            conn?.prepareStatement(query).use { preparedStatement ->
+                preparedStatement?.setString(1, fechaReserva)
+                preparedStatement?.setString(2, horaReserva)
+                preparedStatement?.setInt(3, idTipoCancha)
+                val resultSet = preparedStatement?.executeQuery()
+                while(resultSet?.next() == true) {
+                    val cancha = Cancha(
+                        id = resultSet.getInt("id"),
+                        idPredio = resultSet.getInt("idPredio"),
+                        nombrePredio = resultSet.getString("nombrePredio"),
+                        idTipoCancha = idTipoCancha,
+                        tipoCancha = resultSet.getString("tipoCancha"),
+                        nroCancha = "${resultSet.getInt("numero_cancha")}",
+                        precioHora = resultSet.getDouble("precio_hora"),
+                        disponibilidad = resultSet.getInt("disponibilidad") == 1
+                    )
+                    canchasDisponibles.add(cancha)
+                }
+            }
+        } catch (e: SQLException) {
+            throw SQLException("Error al obtener las canchas disponibles: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+        return@withContext canchasDisponibles
+    }
+
+    suspend fun insertParticipante(idPartido: Int, idParticipante: Int, isOrganizador: Boolean = false): Boolean = withContext(Dispatchers.IO) {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            val query = """
+                INSERT INTO participantes (isOrganizador, montoPagado, montoRestante, idParticipante, idPartido, idEstado)
+                    VALUES (?, ?, ?, ?, ?, ?)
+            """.trimIndent()
+
+            conn?.prepareStatement(query).use { preparedStatement ->
+                preparedStatement?.setBoolean(1, isOrganizador)
+                preparedStatement?.setDouble(2, 0.0)
+                preparedStatement?.setDouble(3, 0.0)
+                preparedStatement?.setInt(4, idParticipante)
+                preparedStatement?.setInt(5, idPartido)
+                preparedStatement?.setInt(6, PaymentState.PENDING_PAYMENT)
+                val resultSet = preparedStatement?.executeUpdate()
+                return@withContext resultSet != 0
+            }
+        } catch (e: SQLException) {
+            throw SQLException("Error al insertar el participante en el partido: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+    }
+
+    suspend fun updatePayment(participanteId: Int, montoPagado: Double) {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            val query = """
+                UPDATE participantes
+                SET montoPagado = montoPagado + ?,
+                    montoRestante = montoRestante - ?,
+                    idEstado = CASE
+                                WHEN montoRestante - ? <= 0 THEN ?
+                                ELSE ?
+                               END
+                WHERE idParticipante = ?
+            """.trimIndent()
+
+            conn?.prepareStatement(query).use { preparedStatement ->
+                preparedStatement?.setDouble(1, montoPagado)
+                preparedStatement?.setDouble(2, montoPagado)
+                preparedStatement?.setDouble(3, montoPagado)
+                preparedStatement?.setInt(4, PaymentState.PAID)
+                preparedStatement?.setInt(5, PaymentState.PENDING_PAYMENT)
+                preparedStatement?.setInt(6, participanteId)
+                preparedStatement?.executeUpdate()
+            }
+        } catch (e: SQLException) {
+            throw SQLException("Error al actualizar el pago del participante: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+    }
+
+    suspend fun sendInvitation(idPartido: Int, organizador: String, idParticipante: Int): Boolean = withContext(Dispatchers.IO) {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            val query = "INSERT INTO invitaciones_partidos (fecha_invitacion, organizador, idPartido, idCuenta, idEstado) VALUES (CURRENT_TIMESTAMP, ?,?,?,?)"
+
+            conn?.prepareStatement(query).use { preparedStatement ->
+                preparedStatement?.setString(1, organizador)
+                preparedStatement?.setInt(2, idPartido)
+                preparedStatement?.setInt(3, idParticipante)
+                preparedStatement?.setInt(4, SQLServerHelper.PENDING)
+                preparedStatement?.executeUpdate()
+            }
+            return@withContext true
+        } catch (e: SQLException) {
+            throw SQLException("Error al invitar al usuario al equipo. Detalles: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+    }
+
+    suspend fun sendInvitationByEmail(idPartido: Int, organizador: String, email: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            var conn: Connection? = null
+            try {
+                conn = DBConnection.getConnection()
+                conn?.autoCommit = false
+
+                val query = "INSERT INTO invitaciones_partidos (fecha_invitacion, organizador, idPartido, idCuenta, idEstado) VALUES (CURRENT_TIMESTAMP, ?,?,?,?)"
+                val idUsuario = equipoRepository.getMemberId(conn!!, email)
+
+                conn.prepareStatement(query).use { preparedStatement ->
+                    preparedStatement?.setString(1, organizador)
+                    preparedStatement?.setInt(2, idPartido)
+                    preparedStatement?.setInt(3, idUsuario)
+                    preparedStatement?.setInt(4, SQLServerHelper.PENDING)
+                    preparedStatement?.executeUpdate()
+                }
+
+                conn.commit()
+                return@withContext true
+            } catch (e: SQLException) {
+                conn?.rollback()
+                throw SQLException("Error al invitar al usuario al partido. Detalles: ${e.message}")
+            } finally {
+                conn?.autoCommit = true
+                conn?.close()
+            }
+        }
+    }
+
+    suspend fun respondMatchInvitation(invitacionId: Int, idPartido: Int, idCuenta: Int, nuevoEstado: Int) = withContext(Dispatchers.IO) {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            conn?.autoCommit = false
+
+            val query1 = "UPDATE invitaciones_partidos SET idEstado = ? WHERE id = ?"
+            conn?.prepareStatement(query1).use { preparedStatement ->
+                preparedStatement?.setInt(1, nuevoEstado)
+                preparedStatement?.setInt(2, invitacionId)
+                preparedStatement?.executeUpdate()
+            }
+
+            val query2 = "INSERT INTO jugadores_partidos (idJugador, idPartido) VALUES (?, ?)"
+            conn?.prepareStatement(query2).use { preparedStatement ->
+                preparedStatement?.setInt(1, idCuenta)
+                preparedStatement?.setInt(2, idPartido)
+                preparedStatement?.executeUpdate()
+            }
+
+            conn?.commit()
+        } catch (e: SQLException) {
+            conn?.rollback()
+            throw SQLException("Error al actualizar el estado de la invitación y agregar usuario al equipo. Detalles: ${e.message}")
+        } finally {
+            conn?.autoCommit = true
+            conn?.close()
+        }
+    }
+
+    suspend fun getPartidoById(partidoId: Int): Partido {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            val query = "SELECT * FROM partidos WHERE id = ?"
+
+            var partido: Partido? = null
+
+            conn?.prepareStatement(query).use {
+                it?.setInt(1, partidoId)
+                val resultSet = it?.executeQuery()
+                if(resultSet?.next() == true) {
+                    partido = Partido (
+                        id = resultSet.getInt("id"),
+                        isPublic = resultSet.getInt("isPublic") == 1,
+                        fecha = resultSet.getString("fecha"),
+                        hora = resultSet.getString("hora"),
+                        idOrganizador = resultSet.getInt("idOrganizador"),
+                        idCancha = resultSet.getInt("idCancha"),
+                        idTipoPartido = resultSet.getInt("idTipoPartido"),
+                        idEstado = resultSet.getInt("idEstado")
+                    )
+                } else
+                    throw SQLException("No se encontró el partido con ID: $partidoId")
+            }
+            return partido!!
+        } catch (e: SQLException) {
+            throw SQLException("Error al obtener el partido por ID: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+    }
+
+    suspend fun getReservaByPartidoId(partidoId: Int): Reserva {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            val query = """
+                SELECT r.*, p.nombre AS predio, p.url_google_maps AS ubicacion
+                FROM reservas r
+                LEFT JOIN predios p ON r.idPredio = p.id
+                WHERE r.idPartido = ?
+            """.trimIndent()
+
+            var reserva: Reserva? = null
+
+            conn?.prepareStatement(query).use {
+                it?.setInt(1, partidoId)
+                val resultSet = it?.executeQuery()
+                if(resultSet?.next() == true) {
+                    reserva = Reserva(
+                        id = resultSet.getInt("id"),
+                        fecha = resultSet.getString("fecha_reserva"),
+                        horaInicio = resultSet.getString("hora_inicio"),
+                        horaFin = resultSet.getString("hora_fin"),
+                        monto = resultSet.getDouble("monto"),
+                        idMetodoPago = resultSet.getInt("idMetodoPago"),
+                        idEstado = resultSet.getInt("idEstado"),
+                        idPredio = resultSet.getInt("idPredio"),
+                        predio = resultSet.getString("predio"),
+                        ubicacion = resultSet.getString("ubicacion"),
+                        idPartido = resultSet.getInt("idPartido"),
+                        idCancha = resultSet.getInt("idCancha")
+                    )
+                } else
+                    throw SQLException("No se encontró la reserva con ID del partido: $partidoId")
+            }
+            return reserva!!
+        } catch (e: SQLException) {
+            throw SQLException("Error al obtener la reserva por ID del partido: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+    }
+
+    suspend fun getParticipantesByPartidoId(partidoId: Int): List<Participante> {
+        var conn: Connection? = null
+        val participantes = mutableListOf<Participante>()
+        try {
+            conn = DBConnection.getConnection()
+            val query = """
+                SELECT p.id AS idParticipante,
+                       c.nombre,
+                       po.descripcion AS posicion,
+                       p.isOrganizador,
+                       p.montoPagado,
+                       p.montoRestante,
+                       p.idEstado
+                FROM participantes p
+                LEFT JOIN cuentas c ON p.idParticipante = c.id
+                LEFT JOIN posiciones po ON c.idPosicion = po.id
+                WHERE p.idPartido = ?
+            """.trimIndent()
+
+            conn?.prepareStatement(query).use { preparedStatement ->
+                preparedStatement?.setInt(1, partidoId)
+                val resultSet = preparedStatement?.executeQuery()
+                while(resultSet?.next() == true) {
+                    participantes.add(
+                        Participante (
+                            id = resultSet.getInt("idParticipante"),
+                            nombre = resultSet.getString("nombre"),
+                            posicion = resultSet.getString("posicion"),
+                            isOrganizador = resultSet.getInt("isOrganizador") == 1,
+                            montoPagado = resultSet.getDouble("montoPagado").takeIf { !resultSet.wasNull() },
+                            montoRestante = resultSet.getDouble("montoRestante").takeIf { !resultSet.wasNull() },
+                            idEstado = resultSet.getInt("idEstado")
+                        )
+                    )
+                }
+            }
+        } catch (e: SQLException) {
+            throw SQLException("Error al obtener los participantes por ID del partido: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+        return participantes
+    }
+
+    suspend fun getCanchaByPartido(canchaId: Int): Cancha = withContext(Dispatchers.IO) {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            val query = """
+                SELECT c.*, t.descripcion AS tipoCancha
+                FROM canchas c
+                LEFT JOIN tipos_canchas t ON c.idTipoCancha = t.id
+                WHERE c.id = ?
+            """.trimIndent()
+
+            var cancha: Cancha? = null
+
+            conn?.prepareStatement(query).use {
+                it?.setInt(1, canchaId)
+                val resultSet = it?.executeQuery()
+                if(resultSet?.next() == true) {
+                     cancha = Cancha(
+                        id = resultSet.getInt("id"),
+                        idPredio = resultSet.getInt("idPredio"),
+                        idTipoCancha = resultSet.getInt("idTipoCancha"),
+                        tipoCancha = resultSet.getString("tipoCancha"),
+                        nroCancha = resultSet.getString("numero_cancha"),
+                        precioHora = resultSet.getDouble("precio_hora"),
+                        disponibilidad = resultSet.getInt("disponibilidad") == 1
+                    )
+                } else {
+                    throw SQLException("No se encontró la cancha con ID: $canchaId")
+                }
+            }
+            return@withContext cancha!!
+        } catch (e: SQLException) {
+            throw SQLException("Error al obtener la cancha por ID: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+    }
+
+    suspend fun getMiembrosByCapitan(capitanId: Int): List<Miembro> {
+        val miembros = mutableListOf<Miembro>()
+        val conn: Connection?
+        try {
+            conn = DBConnection.getConnection()
+            val query = """
+                SELECT c.id AS id,
+                       c.nombre AS nombre,
+                       h.descripcion AS habilidad,
+                       p.descripcion AS posicion
+                FROM equipos e
+                LEFT JOIN jugadores_equipos je ON e.id = je.idEquipo
+                LEFT JOIN cuentas c ON je.idCuenta = c.id
+                LEFT JOIN habilidades h ON c.idHabilidad = h.id
+                LEFT JOIN posiciones p ON c.idPosicion = p.id
+                WHERE e.idCapitan = ?
+            """.trimIndent()
+
+            conn?.prepareStatement(query).use { preparedStatement ->
+                preparedStatement?.setInt(1, capitanId)
+                val resultSet = preparedStatement?.executeQuery()
+                while(resultSet != null && resultSet.next()) {
+                    val id = resultSet.getInt("id")
+                    val nombre = resultSet.getString("nombre")
+                    val habilidad = resultSet.getString("habilidad")
+                    val posicion = resultSet.getString("posicion")
+
+                    miembros.add(Miembro(id, nombre, habilidad, posicion))
+                }
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+            throw SQLException("Error al obtener los miembros del equipo. Detalles: ${e.message}")
+        }
+        return miembros
+    }
+
+    object MatchState {
+        const val PENDING = 10
+        const val CANCELED = 11
+        const val CONFIRMED = 12
+        const val IN_COURSE = 13
+        const val FINISHED = 14
+    }
+    object ReservationState {
+        const val PENDING_PAYMENT = 19
+        const val PAID = 20
+        const val CANCELED = 21
+    }
+    object PaymentState {
+        const val PENDING_PAYMENT = 22
+        const val PARCIAL_PAID = 23
+        const val PAID = 24
+    }
+}

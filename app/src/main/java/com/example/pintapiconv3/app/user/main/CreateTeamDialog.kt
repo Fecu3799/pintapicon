@@ -65,6 +65,8 @@ class CreateTeamDialog : DialogFragment() {
                 if(equipoRepository.createTeam(userID, teamName, teamDescription)) {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(requireContext(), "Equipo creado exitosamente", Toast.LENGTH_SHORT).show()
+                        userViewModel.setHasTeam(true)
+                        parentFragmentManager.setFragmentResult("teamCreated", Bundle())
                         dismiss()
                     }
                 } else {

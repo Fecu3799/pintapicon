@@ -1,5 +1,6 @@
 package com.example.pintapiconv3.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +27,7 @@ class PredioAdminAdapter (
     override fun getItem(position: Int): Any = predios[position]
     override fun getItemId(position: Int): Long = position.toLong()
 
+    @SuppressLint("SetTextI18n")
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val view: View = convertView ?: LayoutInflater.from(context).inflate(R.layout.abm_predio_list_item, parent, false)
 

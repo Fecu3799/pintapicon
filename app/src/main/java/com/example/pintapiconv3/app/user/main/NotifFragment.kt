@@ -13,8 +13,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.InvitacionAdapter
+import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.Invitacion
 import com.example.pintapiconv3.repository.EquipoRepository
+import com.example.pintapiconv3.repository.PartidoRepository
 import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +30,8 @@ class NotifFragment : Fragment() {
     private lateinit var invitacionesAdapter: InvitacionAdapter
 
     private val equipoRepository = EquipoRepository()
+    private val sqlServerHelper = SQLServerHelper()
+    private val partidoRepository = PartidoRepository()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -58,7 +62,7 @@ class NotifFragment : Fragment() {
             if(userId != null) {
                 try {
                     val invitaciones = withContext(Dispatchers.IO) {
-                        equipoRepository.getPendingInvitations(userId)
+                        sqlServerHelper.getAllPendingInvitations(userId)
                     }
                     invitacionesAdapter.setInvitaciones(invitaciones)
                     Log.d("InvitacionAdapter", "Invitaciones cargadas con éxito: $invitaciones")
@@ -73,14 +77,32 @@ class NotifFragment : Fragment() {
     private fun responderInvitacion(invitacion: Invitacion, accept: Boolean) {
         lifecycleScope.launch(Dispatchers.Main) {
             try {
-                val nuevoEstado = if(accept) EquipoRepository.ACCEPTED else EquipoRepository.REJECTED
-                withContext(Dispatchers.IO) {
-                    equipoRepository.acceptTeamInvitation(invitacion.id, invitacion.idEquipo, userViewModel.user.value!!.id, nuevoEstado)
+                if(invitacion.idEquipo != null) {
+                    val nuevoEstado = if(accept) SQLServerHelper.ACCEPTED else SQLServerHelper.REJECTED
+                    withContext(Dispatchers.IO) {
+                        equipoRepository.respondTeamInvitation(
+                            invitacion.id,
+                            invitacion.idEquipo!!,
+                            userViewModel.user.value!!.id,
+                            nuevoEstado
+                        )
+                    }
+                } else if(invitacion.idPartido != null) {
+                    val nuevoEstado = if(accept) SQLServerHelper.ACCEPTED else SQLServerHelper.REJECTED
+                    withContext(Dispatchers.IO) {
+                        partidoRepository.respondMatchInvitation(
+                            invitacion.id,
+                            invitacion.idPartido!!,
+                            userViewModel.user.value!!.id,
+                            nuevoEstado
+                        )
+                    }
                 }
                 Toast.makeText(requireContext(), if(accept) "Invitacion aceptada" else "Invitacion rechazada", Toast.LENGTH_SHORT).show()
                 cargarInvitacionesPendientes()
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Error al responder la invitacion. Detalles: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("InvitacionAdapter", "Error al responder la invitacion. Detalles: ${e.message}")
             }
         }
     }

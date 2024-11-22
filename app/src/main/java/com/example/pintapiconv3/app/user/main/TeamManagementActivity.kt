@@ -153,7 +153,7 @@ class TeamManagementActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Main) {
             try {
                 val success = withContext(Dispatchers.IO) {
-                    equipoRepository.inviteUserToTeam(equipoId, userId, email)
+                    equipoRepository.sendInvitation(equipoId, userId, email)
                 }
                 if(success) {
                     showToast("Invitación enviada")

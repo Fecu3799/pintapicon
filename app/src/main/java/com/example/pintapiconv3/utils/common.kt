@@ -3,6 +3,7 @@ package com.example.pintapiconv3.utils
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.text.InputType
 import android.util.Log
@@ -90,6 +91,16 @@ object Utils {
             Log.e("Error", "Error al calcular la edad: ${e.message}")
             0
         }
+    }
+
+    @SuppressLint("DefaultLocale")
+    fun calcularHoraFin(horaInicio: String): String {
+        // Esto asume que cada partido dura 1 hora. Ajustar según sea necesario.
+        val partes = horaInicio.split(":")
+        val hora = partes[0].toInt()
+        val minutos = partes[1].toInt()
+        val horaFin = hora + 1
+        return String.format("%02d:%02d", horaFin, minutos)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -215,6 +226,24 @@ object Utils {
             e.printStackTrace()
             println("Error al enviar el correo de verificación: ${e.message}")
         }
+    }
+
+    fun parseLatLngFromUrl(url: String): Pair<Double, Double>? {
+        try {
+            val uri = Uri.parse(url)
+            val query = uri.getQueryParameter("q")
+            if (query != null) {
+                val coordinates = query.split(",")
+                if (coordinates.size == 2) {
+                    val latitude = coordinates[0].toDouble()
+                    val longitude = coordinates[1].toDouble()
+                    return Pair(latitude, longitude)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
     }
 }
 

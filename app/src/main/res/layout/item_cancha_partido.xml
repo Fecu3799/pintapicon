@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:background="@drawable/border_rect">
+
+    <LinearLayout
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_nombre_predio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:text="Nombre del predio" />
+
+        <TextView
+            android:id="@+id/tv_nombre_cancha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="Tipo de Cancha" />
+
+        <TextView
+            android:id="@+id/tv_precio_hora_cancha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Precio/hora : $precioHora"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_cancha_ocupada"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="OCUPADA"
+        android:textSize="16sp"
+        android:textColor="@color/red"
+        android:textStyle="bold"
+        android:visibility="gone"/>
+
+</LinearLayout>

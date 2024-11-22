@@ -193,7 +193,7 @@ class UserRepository {
         var conn: Connection? = null
         val currentTimestamp = Timestamp(System.currentTimeMillis()).toString()
         val query = """
-            INSERT INTO auditorias_logs (idCuenta, tipo_accion, descripcion_accion, fecha_hora, ip_address) 
+            INSERT INTO auditorias_logs (idCuenta, tipo_accion, descripcion, fecha_hora, direccion_ip) 
             VALUES (?, ?, ?, ?, ?)
         """.trimIndent()
 
@@ -382,11 +382,7 @@ class UserRepository {
             return resultSet != 0
 
         } catch (e: SQLException) {
-            e.printStackTrace()
-            return false
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return false
+            throw SQLException("Error al insertar la cuenta: ${e.message}")
         }
     }
 
@@ -627,7 +623,7 @@ class UserRepository {
 
             while(resultSet?.next() == true) {
                 val id = resultSet.getInt("idCuenta")
-                var user = User(
+                val user = User(
                     id = resultSet.getInt("idCuenta"),
                     email = resultSet.getString("email"),
                     password = resultSet.getString("contraseña"),
@@ -727,18 +723,8 @@ class UserRepository {
             const val VERIFIED = 2
             const val DELETED = 3
             const val SUSPENDED = 4
-            const val BLOCKED = 13
+            const val BLOCKED = 5
         }
-
-
-
-        /*object MatchStates {
-            const val PENDING = 8
-            const val CANCELED = 9
-            const val CONFIRMED = 10
-            const val IN_PROGRESS = 11
-            const val FINALIZED = 12
-        }*/
 
         object Gender {
             const val MALE = 1

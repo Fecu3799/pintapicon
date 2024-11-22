@@ -181,17 +181,17 @@ class EditPredioActivity : AppCompatActivity() {
 
                         deletedCanchas?.forEach { cancha ->
                             val canchasEliminadas = predioRepository.deleteCanchaWithConnection(conn, cancha)
-                            if(!canchasEliminadas) throw SQLException("Error al eliminar cancha ${cancha.tipoCancha}")
+                            if(!canchasEliminadas) throw SQLException("Error al eliminar ${cancha.nroCancha}")
                         }
 
                         updatedCanchas.filter { it.isNew }.forEach { cancha ->
                             val canchaInsertada = predioRepository.insertCanchaWithConnection(conn, cancha)
-                            if(!canchaInsertada) throw SQLException("Error al guardar cancha ${cancha.tipoCancha}")
+                            if(!canchaInsertada) throw SQLException("Error al guardar ${cancha.nroCancha}")
                         }
 
                         updatedCanchas.filter {!it.isNew}.forEach { cancha ->
                             val canchaActualizada = predioRepository.updateCanchaWithConnection(conn, cancha)
-                            if(!canchaActualizada) throw SQLException("Error al actualizar cancha ${cancha.tipoCancha}")
+                            if(!canchaActualizada) throw SQLException("Error al actualizar ${cancha.nroCancha}")
                         }
 
                         updatedHorarios.forEach { horario ->

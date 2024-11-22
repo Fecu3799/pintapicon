@@ -78,11 +78,6 @@ class LoginActivity : AppCompatActivity() {
 
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        DBConnection.closeConnection()
-    }
-
     // Inicializa los componentes visuales
     private fun initView() {
         et_email = findViewById(R.id.et_email)

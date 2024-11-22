@@ -9,6 +9,7 @@
     <color name="blue">#0344EB</color>
     <color name="yellow">#F5EE22</color>
     <color name="grey">#464648</color>
+    <color name="red">#FF0000</color>
     <color name="darkgreen">#27AE60</color>
     <color name="lessdarkgreen">#6627AE60</color>
     <color name="darkergreen">#075E60</color>
@@ -17,5 +18,6 @@
     <color name="transparent">#33FFFFFF</color>
     <color name="lightgrey">#33464648</color>
     <color name="transparente">#00000000</color>
+    <color name="almost_transparent">#11FFFFFF</color>
 
 </resources>

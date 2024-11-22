@@ -107,9 +107,11 @@ class EditCanchasFragment : Fragment() {
                 if(precioHora != null && precioHora <= 999999.99 && precioHora > 0) {
                     if(viewModel.predio.value?.id != null && viewModel.predio.value!!.id > 0) {
                         val nuevaCancha = Cancha (
+                            id = 0,
                             idPredio = viewModel.predio.value!!.id,
                             idTipoCancha = idTipoCancha,
                             tipoCancha = tipoCancha,
+                            nroCancha = "Cancha ${editCanchaAdapter.itemCount + 1}",
                             precioHora = precioHora,
                             disponibilidad = true,
                             isNew = true

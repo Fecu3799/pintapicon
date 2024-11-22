@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="325dp"
+    android:layout_height="100dp"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:background="@drawable/border_rect">
+
+    <LinearLayout
+        android:layout_width="205dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center">
+
+        <TextView
+            android:id="@+id/tv_nombre_miembro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nombre del Jugador"
+            android:textStyle="bold"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/tv_habilidad_miembro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Habilidad: Alta"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp"/>
+
+        <TextView
+            android:id="@+id/tv_posicion_miembro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Posición: Delantero"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/btn_invitar_miembro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:text="  Invitar"
+        android:textSize="16sp"
+        android:background="@drawable/border_rect"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="5dp"
+        android:drawableStart="@drawable/ic_send_invitation"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:clickable="true"/>
+
+
+</LinearLayout>

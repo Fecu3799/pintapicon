@@ -1,5 +1,6 @@
 package com.example.pintapiconv3.app.user.main
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -14,7 +15,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.app.user.MainActivity
+import com.example.pintapiconv3.models.Partido
 import com.example.pintapiconv3.repository.EquipoRepository
+import com.example.pintapiconv3.repository.PartidoRepository
 import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
@@ -27,9 +30,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private lateinit var teamButton: ImageButton
     private lateinit var txtTeamButton: TextView
+    private lateinit var matchButton: ImageButton
+    private lateinit var txtMatchButton: TextView
     private lateinit var userViewModel: UserViewModel
 
     private val equipoRepository = EquipoRepository()
+    private val partidoRepository = PartidoRepository()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -40,11 +46,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         userViewModel = SharedUserData.userViewModel!!
 
+        val sharedPref = requireContext().getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
+        val partidoId = sharedPref.getInt("partidoId", -1)
+
         teamButton = view.findViewById(R.id.btn_equipo)
+        matchButton = view.findViewById(R.id.btn_partido)
         txtTeamButton = view.findViewById(R.id.txt_btn_equipo)
+        txtMatchButton = view.findViewById(R.id.txt_btn_partido)
 
         userViewModel.user.observe(viewLifecycleOwner) { user ->
             user?.let {
@@ -53,10 +63,30 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 } else {
                     setupTeamButton(userViewModel.hasTeam.value == true)
                 }
+                if(userViewModel.isMatch.value == null) {
+                    checkIfUserIsMatch(it.id)
+                } else {
+                    setupMatchButton(userViewModel.isMatch.value == true)
+                }
+                if(partidoId != -1) {
+                    setupMatchButton(true)
+                }
             }
         }
 
+        userViewModel.hasTeam.observe(viewLifecycleOwner) { hasTeam ->
+            setupTeamButton(hasTeam)
+        }
+        userViewModel.isMatch.observe(viewLifecycleOwner) { isMatch ->
+            setupMatchButton(isMatch)
+        }
+
+        parentFragmentManager.setFragmentResultListener("matchCreated", viewLifecycleOwner) { _, _ ->
+            userViewModel.setIsMatch(true)
+        }
     }
+
+
 
     private fun checkIfUserHasTeam(userID: Int) {
         lifecycleScope.launch(Dispatchers.Main) {
@@ -65,6 +95,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
             userViewModel.setHasTeam(hasTeam)
             setupTeamButton(hasTeam)
+        }
+    }
+
+    private fun checkIfUserIsMatch(userId: Int) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            val isMatch = withContext(Dispatchers.IO) {
+                partidoRepository.hasMatch(userId)
+            }
+            userViewModel.setIsMatch(isMatch)
+            setupMatchButton(isMatch)
         }
     }
 
@@ -81,6 +121,23 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             teamButton.setOnClickListener {
                 val dialog = CreateTeamDialog()
                 dialog.show(childFragmentManager, "CreateTeamDialog")
+            }
+        }
+    }
+
+    private fun setupMatchButton(isMatch: Boolean) {
+        if(isMatch) {
+            txtMatchButton.text = "Ver partido"
+            matchButton.setOnClickListener {
+                val intent = Intent(requireContext(), MatchDetailsActivity::class.java)
+                intent.putExtra("userId", userViewModel.user.value?.id)
+                startActivity(intent)
+            }
+        } else {
+            txtMatchButton.text = "Crear partido"
+            matchButton.setOnClickListener {
+                val dialog = CreateMatchDialog()
+                dialog.show(childFragmentManager, "CreateMatchDialog")
             }
         }
     }

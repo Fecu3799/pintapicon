@@ -1,5 +1,6 @@
 package com.example.pintapiconv3.adapter
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.models.Invitacion
+import com.example.pintapiconv3.utils.DiffCallback
 
 class InvitacionAdapter(
     private val onInvitationAction: (invitacion: Invitacion, aceptar: Boolean) -> Unit
@@ -17,12 +19,16 @@ class InvitacionAdapter(
     private val invitaciones = mutableListOf<Invitacion>()
 
     fun setInvitaciones(newInvitaciones: List<Invitacion>) {
-        val diffCallback = InvitacionDiffCallback(invitaciones, newInvitaciones)
+        val diffCallback = DiffCallback(
+            invitaciones,
+            newInvitaciones,
+            areItemsSame = { oldItem, newItem -> oldItem.id == newItem.id },
+            areContentsSame = { oldItem, newItem -> oldItem == newItem }
+        )
         val diffResult = DiffUtil.calculateDiff(diffCallback)
 
         invitaciones.clear()
         invitaciones.addAll(newInvitaciones)
-
         diffResult.dispatchUpdatesTo(this)
     }
 
@@ -39,14 +45,23 @@ class InvitacionAdapter(
     override fun getItemCount(): Int = invitaciones.size
 
     inner class InvitacionViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
-        private val invitacionEquipo = itemView.findViewById<TextView>(R.id.tv_invitacion_equipo)
-        private val invitacionCapitan = itemView.findViewById<TextView>(R.id.tv_invitacion_capitan)
+        private val tvInvitacionTitulo = itemView.findViewById<TextView>(R.id.tv_invitacion_titulo)
+        private val tvIinvitacionOrganizador = itemView.findViewById<TextView>(R.id.tv_invitacion_organizador)
         private val btnAceptar = itemView.findViewById<ImageButton>(R.id.btn_aceptar)
         private val btnRechazar = itemView.findViewById<ImageButton>(R.id.btn_rechazar)
 
+        @SuppressLint("SetTextI18n")
         fun bind(invitacion: Invitacion) {
-            invitacionEquipo.text = "Equipo: ${invitacion.equipo}"
-            invitacionCapitan.text = "Capitan: ${invitacion.capitan}"
+            if(invitacion.equipo != null) {
+                tvInvitacionTitulo.text = "Invitacion al equipo: ${invitacion.equipo}"
+                tvIinvitacionOrganizador.text = "Capitán: ${invitacion.capitan}"
+            } else if(invitacion.idPartido != null) {
+                tvInvitacionTitulo.text = "Invitacion de partido"
+                tvIinvitacionOrganizador.text = "Organizador: ${invitacion.organizador}"
+            } else {
+                tvInvitacionTitulo.text = "Invitacion desconocida"
+                tvIinvitacionOrganizador.text = "Organizador desconocido"
+            }
 
             btnAceptar.setOnClickListener {
                 onInvitationAction(invitacion, true)
@@ -59,24 +74,3 @@ class InvitacionAdapter(
     }
 }
 
-class InvitacionDiffCallback(
-    private val oldList: List<Invitacion>,
-    private val newList: List<Invitacion>
-) : DiffUtil.Callback() {
-
-    override fun getOldListSize(): Int {
-        return oldList.size
-    }
-
-    override fun getNewListSize(): Int {
-        return newList.size
-    }
-
-    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        return oldList[oldItemPosition].id == newList[newItemPosition].id
-    }
-
-    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        return oldList[oldItemPosition] == newList[newItemPosition]
-    }
-}
