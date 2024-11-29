@@ -32,6 +32,8 @@ import com.example.pintapiconv3.models.Cancha
 import com.example.pintapiconv3.models.Partido
 import com.example.pintapiconv3.models.Reserva
 import com.example.pintapiconv3.repository.PartidoRepository
+import com.example.pintapiconv3.utils.Const.MatchStatus.PENDING
+import com.example.pintapiconv3.utils.Const.ReservationStatus.PENDING_PAYMENT
 import com.example.pintapiconv3.utils.Utils.calcularHoraFin
 import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
@@ -252,7 +254,7 @@ class CreateMatchDialog : DialogFragment() {
     }
 
     private fun crearPartido() {
-        val tipoPrivacidad = if(rgSeleccionarPrivacidad.checkedRadioButtonId == R.id.rb_publico) true else false
+        val tipoPrivacidad = rgSeleccionarPrivacidad.checkedRadioButtonId == R.id.rb_publico
         val tipoPartido = when(rgSeleccionarTipoPartido.checkedRadioButtonId) {
             R.id.rb_masculino -> 1
             R.id.rb_femenino -> 2
@@ -274,7 +276,7 @@ class CreateMatchDialog : DialogFragment() {
             idOrganizador = userId,
             idCancha = canchaSeleccionada?.id ?: return,
             idTipoPartido = tipoPartido,
-            idEstado = PartidoRepository.MatchState.PENDING
+            idEstado = PENDING
         )
 
         val reserva = Reserva(
@@ -284,7 +286,7 @@ class CreateMatchDialog : DialogFragment() {
             horaFin = horaFin,
             monto = canchaSeleccionada!!.precioHora,
             idMetodoPago = metodoPago,
-            idEstado = PartidoRepository.ReservationState.PENDING_PAYMENT,
+            idEstado = PENDING_PAYMENT,
             idPredio = canchaSeleccionada!!.idPredio,
             idPartido = 0,
             idCancha = canchaSeleccionada!!.id
@@ -301,14 +303,14 @@ class CreateMatchDialog : DialogFragment() {
                     userViewModel.setIsCaptain(true)
 
                     val sharedPref = requireContext().getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
+                    val userId = userViewModel.user.value?.id ?: return@launch
                     with(sharedPref.edit()) {
-                        putInt("partidoId", idPartido)
+                        putInt("partidoId_$userId", idPartido)
                         apply()
                     }
 
                     startActivity(Intent(requireContext(), MatchDetailsActivity::class.java))
 
-                    //requireActivity().supportFragmentManager.setFragmentResult("matchCreated", Bundle())
                     dismiss()
                 } else {
                     Toast.makeText(requireContext(), "No se pudo crear el partido", Toast.LENGTH_SHORT).show()

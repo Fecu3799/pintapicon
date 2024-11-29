@@ -12,6 +12,8 @@ import com.example.pintapiconv3.R
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.adapter.UserAdapter
 import com.example.pintapiconv3.repository.UserRepository
+import com.example.pintapiconv3.utils.Const
+import com.example.pintapiconv3.utils.Const.AccountStatus.DELETED
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -43,7 +45,7 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
         val users = userRepository.getAllUsers()
 
         // Ordenar las cuentas por estado
-        val sortedUsers = users.sortedBy { it.estado == UserRepository.Companion.AccountStates.DELETED}
+        val sortedUsers = users.sortedBy { it.estado == DELETED}
 
         // Configurar el adapter del ListView
         userAdapter = UserAdapter(this, sortedUsers)
@@ -81,7 +83,7 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
         }
 
         // Reordena la lista
-        val sortedUsers = updatedList.sortedBy { it.estado == UserRepository.Companion.AccountStates.DELETED }
+        val sortedUsers = updatedList.sortedBy { it.estado == DELETED }
 
         // Crear un nuevo adaptador con la lista actualizada
         val newUserAdapter = UserAdapter(this, sortedUsers)

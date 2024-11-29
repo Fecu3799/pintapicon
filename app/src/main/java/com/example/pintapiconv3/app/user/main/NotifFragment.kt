@@ -1,5 +1,7 @@
 package com.example.pintapiconv3.app.user.main
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -14,9 +16,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.InvitacionAdapter
 import com.example.pintapiconv3.database.SQLServerHelper
+import com.example.pintapiconv3.database.SQLServerHelper.InvitationStates.ACCEPTED
+import com.example.pintapiconv3.database.SQLServerHelper.InvitationStates.REJECTED
 import com.example.pintapiconv3.models.Invitacion
 import com.example.pintapiconv3.repository.EquipoRepository
 import com.example.pintapiconv3.repository.PartidoRepository
+import com.example.pintapiconv3.viewmodel.PartidoViewModel
+import com.example.pintapiconv3.viewmodel.SharedMatchData
 import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +32,7 @@ import kotlinx.coroutines.withContext
 class NotifFragment : Fragment() {
 
     private lateinit var userViewModel: UserViewModel
+    //private lateinit var partidoViewModel: PartidoViewModel
     private lateinit var rvNotificaciones: RecyclerView
     private lateinit var invitacionesAdapter: InvitacionAdapter
 
@@ -78,7 +85,7 @@ class NotifFragment : Fragment() {
         lifecycleScope.launch(Dispatchers.Main) {
             try {
                 if(invitacion.idEquipo != null) {
-                    val nuevoEstado = if(accept) SQLServerHelper.ACCEPTED else SQLServerHelper.REJECTED
+                    val nuevoEstado = if(accept) ACCEPTED else REJECTED
                     withContext(Dispatchers.IO) {
                         equipoRepository.respondTeamInvitation(
                             invitacion.id,
@@ -88,7 +95,7 @@ class NotifFragment : Fragment() {
                         )
                     }
                 } else if(invitacion.idPartido != null) {
-                    val nuevoEstado = if(accept) SQLServerHelper.ACCEPTED else SQLServerHelper.REJECTED
+                    val nuevoEstado = if(accept) ACCEPTED else REJECTED
                     withContext(Dispatchers.IO) {
                         partidoRepository.respondMatchInvitation(
                             invitacion.id,
@@ -96,6 +103,17 @@ class NotifFragment : Fragment() {
                             userViewModel.user.value!!.id,
                             nuevoEstado
                         )
+                    }
+                    if(accept) {
+                        val userId = userViewModel.user.value?.id
+                        val sharedPref = requireContext().getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
+                        with(sharedPref.edit()) {
+                            putInt("partidoId_$userId", invitacion.idPartido!!)
+                            apply()
+                        }
+                        val intent = Intent(requireContext(), MatchDetailsActivity::class.java)
+                        //intent.putExtra("partidoId_$userId", invitacion.idPartido!!)
+                        startActivity(intent)
                     }
                 }
                 Toast.makeText(requireContext(), if(accept) "Invitacion aceptada" else "Invitacion rechazada", Toast.LENGTH_SHORT).show()

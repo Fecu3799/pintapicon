@@ -11,6 +11,9 @@ import android.widget.TextView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.models.Predio
 import com.example.pintapiconv3.repository.PredioRepository
+import com.example.pintapiconv3.utils.Const.FieldStatus.CLOSED
+import com.example.pintapiconv3.utils.Const.FieldStatus.OPEN
+import com.example.pintapiconv3.utils.Const.FieldStatus.OUT_OF_SERVICE
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,9 +44,9 @@ class PredioAdminAdapter (
 
         tvNombrePredio.text = predio.nombre
         tvEstadoPredio.text = when(predio.idEstado) {
-            PredioRepository.OPEN -> "Estado: Abierto"
-            PredioRepository.CLOSED -> "Estado: Cerrado"
-            PredioRepository.OUT_OF_SERVICE -> "Estado: Fuera de Servicio"
+            OPEN -> "Estado: Abierto"
+            CLOSED -> "Estado: Cerrado"
+            OUT_OF_SERVICE -> "Estado: Fuera de Servicio"
             else -> "Estado: Eliminado"
         }
 

@@ -11,6 +11,11 @@ import androidx.core.content.ContextCompat
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.repository.UserRepository
+import com.example.pintapiconv3.utils.Const.AccountStatus.BLOCKED
+import com.example.pintapiconv3.utils.Const.AccountStatus.DELETED
+import com.example.pintapiconv3.utils.Const.AccountStatus.NOT_VERIFIED
+import com.example.pintapiconv3.utils.Const.AccountStatus.SUSPENDED
+import com.example.pintapiconv3.utils.Const.AccountStatus.VERIFIED
 
 class UserAdapter(context: Context, users: List<User>): ArrayAdapter<User>(context, 0, users) {
 
@@ -42,15 +47,15 @@ class UserAdapter(context: Context, users: List<User>): ArrayAdapter<User>(conte
         holder.userEmail.text = user?.email
         holder.userRol.text = if (user?.isAdmin == 0) "Usuario" else "Administrador"
         holder.userState.text = when (user?.estado) {
-            UserRepository.Companion.AccountStates.NOT_VERIFIED -> "No verificada"
-            UserRepository.Companion.AccountStates.VERIFIED -> "Verificada"
-            UserRepository.Companion.AccountStates.DELETED -> "Eliminada"
-            UserRepository.Companion.AccountStates.SUSPENDED -> "Suspendida"
-            UserRepository.Companion.AccountStates.BLOCKED -> "Bloqueada"
+            NOT_VERIFIED -> "No verificada"
+            VERIFIED -> "Verificada"
+            DELETED -> "Eliminada"
+            SUSPENDED -> "Suspendida"
+            BLOCKED -> "Bloqueada"
             else -> "Desconocido"
         }
 
-        if(user?.estado == UserRepository.Companion.AccountStates.DELETED)
+        if(user?.estado == DELETED)
             view.setBackgroundColor(ContextCompat.getColor(context, R.color.lightgrey))
         else
             view.setBackgroundColor(ContextCompat.getColor(context, R.color.white))

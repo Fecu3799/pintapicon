@@ -348,10 +348,4 @@ class PredioRepository {
         return horariosList
     }
 
-    companion object FieldStates {
-        const val OPEN = 6
-        const val CLOSED = 7
-        const val OUT_OF_SERVICE = 8
-        const val ELIMINATED = 9
-    }
 }

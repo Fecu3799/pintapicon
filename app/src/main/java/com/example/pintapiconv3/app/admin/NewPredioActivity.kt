@@ -34,6 +34,8 @@ import com.example.pintapiconv3.models.Horario
 import com.example.pintapiconv3.models.Predio
 import com.example.pintapiconv3.repository.DireccionRepository
 import com.example.pintapiconv3.repository.PredioRepository
+import com.example.pintapiconv3.utils.Const.FieldStatus.CLOSED
+import com.example.pintapiconv3.utils.Const.FieldStatus.OPEN
 import com.example.pintapiconv3.utils.Utils.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -335,7 +337,7 @@ class NewPredioActivity : AppCompatActivity() {
             nombre = fieldName.text.toString(),
             telefono = fieldPhoneNumber.text.toString(),
             idDireccion = 0,
-            idEstado = if(fieldState.selectedItemPosition == 0) PredioRepository.OPEN else PredioRepository.CLOSED,
+            idEstado = if(fieldState.selectedItemPosition == 0) OPEN else CLOSED,
             url_google_maps = if (googleMapsUrl.text.isEmpty()) null else googleMapsUrl.text.toString()
         )
 

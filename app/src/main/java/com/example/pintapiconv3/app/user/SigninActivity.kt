@@ -20,6 +20,10 @@ import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.repository.DireccionRepository
 import com.example.pintapiconv3.repository.UserRepository
+import com.example.pintapiconv3.utils.Const.AccountStatus.NOT_VERIFIED
+import com.example.pintapiconv3.utils.Const.Gender.FEMALE
+import com.example.pintapiconv3.utils.Const.Gender.MALE
+import com.example.pintapiconv3.utils.Const.Gender.OTHER
 import com.example.pintapiconv3.utils.Utils.convertDateFormat
 import com.example.pintapiconv3.utils.Utils.generateVerificationCode
 import com.example.pintapiconv3.utils.Utils.hashPassword
@@ -191,9 +195,9 @@ class SigninActivity : AppCompatActivity() {
                     )
 
                     val idGenero = when (rg_genero.checkedRadioButtonId) {
-                        R.id.rb_masculino -> UserRepository.Companion.Gender.MALE
-                        R.id.rb_femenino -> UserRepository.Companion.Gender.FEMALE
-                        else -> UserRepository.Companion.Gender.OTHER
+                        R.id.rb_masculino -> MALE
+                        R.id.rb_femenino -> FEMALE
+                        else -> OTHER
                     }
 
                     val user = User(
@@ -212,7 +216,7 @@ class SigninActivity : AppCompatActivity() {
                         localidad = "",
                         provincia = "",
                         pais = "",
-                        estado = UserRepository.Companion.AccountStates.NOT_VERIFIED,
+                        estado = NOT_VERIFIED,
                         genero = idGenero,
                         habilidad = sqlServerHelper.getHabilidades()[spner_habilidad.selectedItemPosition - 1].first,
                         posicion = sqlServerHelper.getPosiciones()[spner_posicion.selectedItemPosition - 1].first,

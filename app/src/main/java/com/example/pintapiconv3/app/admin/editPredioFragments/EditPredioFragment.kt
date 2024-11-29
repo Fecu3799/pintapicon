@@ -22,6 +22,10 @@ import com.example.pintapiconv3.app.admin.MarkOnMapDialog
 import com.example.pintapiconv3.models.Direccion
 import com.example.pintapiconv3.models.Predio
 import com.example.pintapiconv3.repository.PredioRepository
+import com.example.pintapiconv3.utils.Const.FieldStatus.CLOSED
+import com.example.pintapiconv3.utils.Const.FieldStatus.ELIMINATED
+import com.example.pintapiconv3.utils.Const.FieldStatus.OPEN
+import com.example.pintapiconv3.utils.Const.FieldStatus.OUT_OF_SERVICE
 import com.example.pintapiconv3.viewmodel.PredioViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -119,10 +123,10 @@ class EditPredioFragment : Fragment() {
             estadoPredio.adapter = estadoAdapter
             estadoPredio.setSelection(
                 when(predio.idEstado) {
-                    PredioRepository.OPEN -> 0
-                    PredioRepository.CLOSED -> 1
-                    PredioRepository.OUT_OF_SERVICE -> 2
-                    PredioRepository.ELIMINATED -> 3
+                    OPEN -> 0
+                    CLOSED -> 1
+                    OUT_OF_SERVICE -> 2
+                    ELIMINATED -> 3
                     else -> 0
                 }
             )

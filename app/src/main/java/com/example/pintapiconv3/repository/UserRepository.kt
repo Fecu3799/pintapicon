@@ -5,6 +5,10 @@ import android.util.Log
 import com.example.pintapiconv3.database.DBConnection
 import com.example.pintapiconv3.utils.LoginResult
 import com.example.pintapiconv3.models.User
+import com.example.pintapiconv3.utils.Const
+import com.example.pintapiconv3.utils.Const.AccountStatus.BLOCKED
+import com.example.pintapiconv3.utils.Const.AccountStatus.SUSPENDED
+import com.example.pintapiconv3.utils.Const.MAX_FAILED_ATTEMPTS
 import com.example.pintapiconv3.utils.JWToken
 import com.example.pintapiconv3.utils.Utils.generateVerificationCode
 import com.example.pintapiconv3.utils.Utils.hashPassword
@@ -45,7 +49,7 @@ class UserRepository {
 
             if(resultSet.next()) {
                 estado = resultSet.getInt("idEstado")
-                if(estado == AccountStates.BLOCKED || estado == AccountStates.SUSPENDED) {
+                if(estado == BLOCKED || estado == SUSPENDED) {
                     return LoginResult.Error("Tu cuenta se encuentra bloqueada/suspendida. Comunicarse con Soporte")
                 } else {
                     isAdmin = resultSet.getInt("isAdmin")
@@ -156,7 +160,7 @@ class UserRepository {
                 } else if(intentos == MAX_FAILED_ATTEMPTS) {
                     val blockQuery = "UPDATE cuentas SET idEstado = ? WHERE email = ?"
                     val blockStatement = conn.prepareStatement(blockQuery)
-                    blockStatement?.setInt(1, AccountStates.BLOCKED)
+                    blockStatement?.setInt(1, BLOCKED)
                     blockStatement?.setString(2, email)
                     blockStatement?.executeUpdate()
                     blockStatement?.close()
@@ -717,21 +721,4 @@ class UserRepository {
             }
     }
 
-    companion object {
-        object AccountStates {
-            const val NOT_VERIFIED = 1
-            const val VERIFIED = 2
-            const val DELETED = 3
-            const val SUSPENDED = 4
-            const val BLOCKED = 5
-        }
-
-        object Gender {
-            const val MALE = 1
-            const val FEMALE = 2
-            const val OTHER = 3
-        }
-
-        const val MAX_FAILED_ATTEMPTS = 5
-    }
 }

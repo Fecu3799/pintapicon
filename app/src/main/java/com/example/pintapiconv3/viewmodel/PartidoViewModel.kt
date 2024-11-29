@@ -11,9 +11,11 @@ import com.example.pintapiconv3.models.Participante
 import com.example.pintapiconv3.models.Partido
 import com.example.pintapiconv3.models.Reserva
 import com.example.pintapiconv3.repository.PartidoRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -33,6 +35,9 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
     private val _canchaElegida = MutableLiveData<Cancha>()
     val canchaElegida: LiveData<Cancha> get() = _canchaElegida
 
+    private val _montoAcumulado = MutableLiveData<Double>()
+    val montoAcumulado: LiveData<Double> get() = _montoAcumulado
+
     private val _countdown = MutableLiveData<String>()
     val countdown: LiveData<String> get() = _countdown
 
@@ -41,16 +46,17 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
     fun setMatch(partidoId: Int) {
         viewModelScope.launch {
             val fetchedMatch = partidoRepository.getPartidoById(partidoId)
-            _match.value = fetchedMatch
+            _match.postValue(fetchedMatch)
 
             val fetchedReserva = partidoRepository.getReservaByPartidoId(partidoId)
-            _reserva.value = fetchedReserva
+            _reserva.postValue(fetchedReserva)
 
             val fetchedParticipantes = partidoRepository.getParticipantesByPartidoId(partidoId)
-            _participantes.value = fetchedParticipantes
+            _participantes.postValue(fetchedParticipantes)
+            _montoAcumulado.postValue(fetchedParticipantes.sumOf { it.montoPagado ?: 0.0 })
 
             val fetchedCancha = partidoRepository.getCanchaByPartido(fetchedMatch.idCancha)
-            _canchaElegida.value = fetchedCancha
+            _canchaElegida.postValue(fetchedCancha)
 
             startCountdown(fetchedReserva.fecha, fetchedReserva.horaInicio)
         }
@@ -99,6 +105,58 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
         viewModelScope.launch {
             val fetchedParticipantes = partidoRepository.getParticipantesByPartidoId(partidoId)
             _participantes.value = fetchedParticipantes
+            _montoAcumulado.value = fetchedParticipantes.sumOf { it.montoPagado ?: 0.0 }
+        }
+    }
+
+    fun updateMatchStatus(partidoId: Int, newStatus: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            partidoRepository.updateMatchStatus(partidoId, newStatus)
+
+            val updatedMatch = partidoRepository.getPartidoById(partidoId)
+            withContext(Dispatchers.Main) {
+                _match.value = updatedMatch
+            }
+        }
+    }
+
+    fun addFundsToParticipant(partidoId: Int, userId: Int, amount: Double, amountPerPerson: Double) {
+        viewModelScope.launch(Dispatchers.IO) {
+            partidoRepository.addFundsToParticipant(partidoId, userId, amount, amountPerPerson)
+
+            val updatedParticipants = partidoRepository.getParticipantesByPartidoId(partidoId)
+            withContext(Dispatchers.Main) {
+                _participantes.value = updatedParticipants
+
+                val accumulatedAmount = updatedParticipants.sumOf { it.montoPagado ?: 0.0 }
+                _montoAcumulado.value = accumulatedAmount
+            }
+        }
+    }
+
+    fun removeParticipant(partidoId: Int, userId: Int, abandono: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            partidoRepository.removeParticipant(partidoId, userId, abandono)
+
+            val updatedParticipants = partidoRepository.getParticipantesByPartidoId(partidoId)
+            withContext(Dispatchers.Main) {
+                _participantes.postValue(updatedParticipants)
+                _montoAcumulado.postValue(updatedParticipants.sumOf { it.montoPagado ?: 0.0 })
+            }
+        }
+    }
+
+    fun isParticipant(partidoId: Int, userId: Int): Boolean {
+        return partidoRepository.esParticipanteDelPartido(partidoId, userId)
+    }
+
+    fun updateReservationStatus(partidoId: Int, newStatus: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            partidoRepository.updateReservationStatus(partidoId, newStatus)
+            val updatedReserva = partidoRepository.getReservaByPartidoId(partidoId)
+            withContext(Dispatchers.Main) {
+                _reserva.postValue(updatedReserva)
+            }
         }
     }
 
@@ -121,8 +179,8 @@ class PartidoViewModelFactory(private val partidoRepository: PartidoRepository) 
 object SharedMatchData {
     var matchViewModel: PartidoViewModel? = null
 
-    fun init(viewModelStoreOwner: ViewModelStoreOwner, partidoRepository: PartidoRepository) {
-        if (matchViewModel == null) {
+    fun init(viewModelStoreOwner: ViewModelStoreOwner, partidoRepository: PartidoRepository, forceInit: Boolean = false) {
+        if (matchViewModel == null || forceInit) {
             val partidoViewModelFactory = PartidoViewModelFactory(partidoRepository)
             matchViewModel = ViewModelProvider(viewModelStoreOwner, partidoViewModelFactory)[PartidoViewModel::class.java]
         }

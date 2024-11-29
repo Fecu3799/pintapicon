@@ -19,6 +19,7 @@ import com.example.pintapiconv3.models.Partido
 import com.example.pintapiconv3.repository.EquipoRepository
 import com.example.pintapiconv3.repository.PartidoRepository
 import com.example.pintapiconv3.repository.UserRepository
+import com.example.pintapiconv3.viewmodel.SharedMatchData
 import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import com.example.pintapiconv3.viewmodel.UserViewModelFactory
@@ -48,8 +49,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         userViewModel = SharedUserData.userViewModel!!
 
-        val sharedPref = requireContext().getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
-        val partidoId = sharedPref.getInt("partidoId", -1)
+        //val sharedPref = requireContext().getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
+        //val partidoId = sharedPref.getInt("partidoId", -1)
 
         teamButton = view.findViewById(R.id.btn_equipo)
         matchButton = view.findViewById(R.id.btn_partido)
@@ -63,14 +64,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 } else {
                     setupTeamButton(userViewModel.hasTeam.value == true)
                 }
+
                 if(userViewModel.isMatch.value == null) {
                     checkIfUserIsMatch(it.id)
                 } else {
                     setupMatchButton(userViewModel.isMatch.value == true)
                 }
-                if(partidoId != -1) {
+                /*if(partidoId != -1) {
                     setupMatchButton(true)
-                }
+                }*/
             }
         }
 
@@ -86,6 +88,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        userViewModel.user.value?.let { user ->
+            checkIfUserIsMatch(user.id)
+        }
+    }
 
 
     private fun checkIfUserHasTeam(userID: Int) {
@@ -101,7 +109,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun checkIfUserIsMatch(userId: Int) {
         lifecycleScope.launch(Dispatchers.Main) {
             val isMatch = withContext(Dispatchers.IO) {
-                partidoRepository.hasMatch(userId)
+                partidoRepository.isParticipantInActiveMatch(userId)
             }
             userViewModel.setIsMatch(isMatch)
             setupMatchButton(isMatch)
@@ -126,7 +134,20 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun setupMatchButton(isMatch: Boolean) {
-        if(isMatch) {
+        if (isMatch) {
+            txtMatchButton.text = "Ver partido"
+            matchButton.setOnClickListener {
+                participantInMatch()
+            }
+        } else {
+            txtMatchButton.text = "Crear partido"
+            matchButton.setOnClickListener {
+                val dialog = CreateMatchDialog()
+                dialog.show(childFragmentManager, "CreateMatchDialog")
+            }
+        }
+
+        /*if(isMatch) {
             txtMatchButton.text = "Ver partido"
             matchButton.setOnClickListener {
                 val intent = Intent(requireContext(), MatchDetailsActivity::class.java)
@@ -139,6 +160,38 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 val dialog = CreateMatchDialog()
                 dialog.show(childFragmentManager, "CreateMatchDialog")
             }
+        }*/
+    }
+
+    private fun participantInMatch() {
+        val sharedPref = requireContext().getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
+        val currentUserId = userViewModel.user.value?.id
+
+        val partidoId = sharedPref.getInt("partidoId_$currentUserId", -1)
+
+        if(partidoId != -1) {
+            lifecycleScope.launch {
+                val isParticipant = withContext(Dispatchers.IO) {
+                    partidoRepository.esParticipanteDelPartido(partidoId, currentUserId!!)
+                }
+
+                if(isParticipant) {
+                    val intent = Intent(requireContext(), MatchDetailsActivity::class.java)
+                    //intent.putExtra("userId", currentUserId)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(requireContext(), "Has sido expulsado del partido", Toast.LENGTH_SHORT).show()
+                    with(sharedPref.edit()) {
+                        remove("partidoId_$currentUserId")
+                        apply()
+                    }
+                    userViewModel.setIsMatch(false)
+                    SharedMatchData.clear()
+                }
+            }
+        } else {
+            userViewModel.setIsMatch(false)
+            SharedMatchData.clear()
         }
     }
 }

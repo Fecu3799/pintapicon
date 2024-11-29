@@ -18,6 +18,11 @@ import com.example.pintapiconv3.app.user.MainActivity
 import com.example.pintapiconv3.app.user.SigninActivity
 import com.example.pintapiconv3.utils.LoginResult
 import com.example.pintapiconv3.repository.UserRepository
+import com.example.pintapiconv3.utils.Const.AccountStatus.BLOCKED
+import com.example.pintapiconv3.utils.Const.AccountStatus.DELETED
+import com.example.pintapiconv3.utils.Const.AccountStatus.NOT_VERIFIED
+import com.example.pintapiconv3.utils.Const.AccountStatus.SUSPENDED
+import com.example.pintapiconv3.utils.Const.AccountStatus.VERIFIED
 import com.example.pintapiconv3.utils.Utils.generateVerificationCode
 import com.example.pintapiconv3.utils.Utils.hashPassword
 import com.example.pintapiconv3.utils.Utils.isValidEmail
@@ -131,16 +136,16 @@ class LoginActivity : AppCompatActivity() {
                     finish()
                 } else {
                     when(result.estado) {
-                        UserRepository.Companion.AccountStates.VERIFIED -> {
+                        VERIFIED -> {
                             userRepository.insertLastAccess(result.email)
                             userRepository.saveUserData(this@LoginActivity, result.email, result.password)
                             startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                             finish()
                         }
-                        UserRepository.Companion.AccountStates.NOT_VERIFIED -> showVerificationDialog(result.email)
-                        UserRepository.Companion.AccountStates.DELETED -> showReactivateDialog(result.email)
-                        UserRepository.Companion.AccountStates.SUSPENDED -> showToast("Tu cuenta se encuentra suspendida. Comunicarse con Soporte")
-                        UserRepository.Companion.AccountStates.BLOCKED -> showToast("Tu cuenta se encuentra bloqueada por superar el número máximo de intentos. Comunicarse con Soporte")
+                        NOT_VERIFIED -> showVerificationDialog(result.email)
+                        DELETED -> showReactivateDialog(result.email)
+                        SUSPENDED -> showToast("Tu cuenta se encuentra suspendida. Comunicarse con Soporte")
+                        BLOCKED -> showToast("Tu cuenta se encuentra bloqueada por superar el número máximo de intentos. Comunicarse con Soporte")
                     }
                 }
             }

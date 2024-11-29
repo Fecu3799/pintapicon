@@ -111,11 +111,12 @@ class InvitePlayerDialog(
     private fun cargarMiembrosEquipo() {
         lifecycleScope.launch {
             try {
-                val miembro = withContext(Dispatchers.IO) {
+                val miembros = withContext(Dispatchers.IO) {
                     partidoRepository.getMiembrosByCapitan(capitanId)
                 }
-                if(miembro.isNotEmpty()) {
-                    miembrosAdapter.setMiembros(miembro)
+                if(miembros.isNotEmpty()) {
+                    val miembrosFiltrados = miembros.filter { it.id != capitanId }
+                    miembrosAdapter.setMiembros(miembrosFiltrados)
                 } else {
                     Toast.makeText(requireContext(), "No hay miembros en el equipo", Toast.LENGTH_SHORT).show()
                 }
