@@ -1,6 +1,7 @@
 package com.example.pintapiconv3.adapter
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -54,6 +55,30 @@ class PickCanchaAdapter(
             }
             tvPrecioHora.text = "Precio/hora: $${cancha.precioHora} ($${String.format("%.1f", precioPorParticipante)} c/u)"
 
+            Log.e("PickCanchaAdapter", "Cancha Nro: ${cancha.nroCancha} - Disponible: ${cancha.disponibilidad}")
+
+            if (cancha.disponibilidad) {
+                // Cancha disponible
+                tvCanchaOcupada.visibility = View.GONE
+                itemView.isEnabled = true
+                itemView.alpha = 1.0f // Opcional: Para indicar visualmente que está habilitado
+                itemView.setOnClickListener {
+                    val previousSelectedPosition = selectedPosition
+                    selectedPosition = adapterPosition
+
+                    notifyItemChanged(previousSelectedPosition)
+                    notifyItemChanged(selectedPosition)
+
+                    onCanchaClicked(cancha)
+                }
+            } else {
+                // Cancha ocupada
+                tvCanchaOcupada.visibility = View.VISIBLE
+                itemView.isEnabled = false
+                itemView.alpha = 0.5f // Opcional: Para indicar visualmente que está deshabilitado
+                itemView.setOnClickListener(null)
+            }
+
 
             if(adapterPosition == selectedPosition) {
                 itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.lessgold))
@@ -61,7 +86,7 @@ class PickCanchaAdapter(
                 itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.white))
             }
 
-            if(cancha.disponibilidad) {
+            /*if(cancha.disponibilidad) {
                 itemView.isEnabled = true
                 itemView.setOnClickListener {
                     val previousSelectedPosition = selectedPosition
@@ -77,7 +102,7 @@ class PickCanchaAdapter(
                 itemView.isEnabled = false
                 tvCanchaOcupada.visibility = View.VISIBLE
                 itemView.setOnClickListener(null)
-            }
+            }*/
         }
     }
 }

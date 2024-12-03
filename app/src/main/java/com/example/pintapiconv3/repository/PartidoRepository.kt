@@ -13,6 +13,7 @@ import com.example.pintapiconv3.utils.Const
 import com.example.pintapiconv3.utils.Const.MatchStatus.CONFIRMED
 import com.example.pintapiconv3.utils.Const.MatchStatus.IN_COURSE
 import com.example.pintapiconv3.utils.Const.MatchStatus.PENDING
+import com.example.pintapiconv3.utils.Const.PaymentStatus.PAID
 import com.example.pintapiconv3.utils.Const.PaymentStatus.PENDING_PAYMENT
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -127,32 +128,37 @@ class PartidoRepository {
         }
     }
 
-    suspend fun getCanchasByTipoYHorario(idTipoCancha: Int, fechaReserva: String, horaReserva: String): List<Cancha> = withContext(Dispatchers.IO) {
+    suspend fun getCanchasByTipoYHorario(idTipoCancha: Int, fechaReserva: String, horaInicio: String, horaFin: String): List<Cancha> = withContext(Dispatchers.IO) {
         var conn: Connection? = null
         val canchasDisponibles = mutableListOf<Cancha>()
 
         try {
             conn = DBConnection.getConnection()
+
             val query = """
                 SELECT c.*, t.descripcion AS tipoCancha, p.nombre AS nombrePredio,
-                    CASE 
-                        WHEN r.id IS NULL THEN 1 
-                        ELSE 0
-                    END AS disponible
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM reservas r
+                        WHERE r.idCancha = c.id
+                        AND r.fecha_reserva = ?
+                        AND (r.hora_inicio < ? AND ? < r.hora_fin)
+                    ) THEN 0
+                    ELSE 1
+                END AS disponible
                 FROM canchas c
-                LEFT JOIN reservas r ON c.id = r.idCancha
-                AND r.fecha_reserva = ?
-                AND (? BETWEEN r.hora_inicio AND r.hora_fin)
                 LEFT JOIN tipos_canchas t ON c.idTipoCancha = t.id
                 LEFT JOIN predios p ON c.idPredio = p.id
                 WHERE c.idTipoCancha = ?
-                ORDER BY disponible DESC;
+                ORDER BY disponible DESC, c.id
             """.trimIndent()
 
             conn?.prepareStatement(query).use { preparedStatement ->
                 preparedStatement?.setString(1, fechaReserva)
-                preparedStatement?.setString(2, horaReserva)
-                preparedStatement?.setInt(3, idTipoCancha)
+                preparedStatement?.setString(2, horaFin)
+                preparedStatement?.setString(3, horaInicio)
+                preparedStatement?.setInt(4, idTipoCancha)
                 val resultSet = preparedStatement?.executeQuery()
                 while(resultSet?.next() == true) {
                     val cancha = Cancha(
@@ -163,7 +169,7 @@ class PartidoRepository {
                         tipoCancha = resultSet.getString("tipoCancha"),
                         nroCancha = "${resultSet.getInt("numero_cancha")}",
                         precioHora = resultSet.getDouble("precio_hora"),
-                        disponibilidad = resultSet.getInt("disponibilidad") == 1
+                        disponibilidad = resultSet.getInt("disponible") == 1
                     )
                     canchasDisponibles.add(cancha)
                 }
@@ -197,37 +203,6 @@ class PartidoRepository {
             }
         } catch (e: SQLException) {
             throw SQLException("Error al insertar el participante en el partido: ${e.message}")
-        } finally {
-            conn?.close()
-        }
-    }
-
-    suspend fun updatePayment(participanteId: Int, montoPagado: Double) {
-        var conn: Connection? = null
-        try {
-            conn = DBConnection.getConnection()
-            val query = """
-                UPDATE participantes
-                SET montoPagado = montoPagado + ?,
-                    montoRestante = montoRestante - ?,
-                    idEstado = CASE
-                                WHEN montoRestante - ? <= 0 THEN ?
-                                ELSE ?
-                               END
-                WHERE idParticipante = ?
-            """.trimIndent()
-
-            conn?.prepareStatement(query).use { preparedStatement ->
-                preparedStatement?.setDouble(1, montoPagado)
-                preparedStatement?.setDouble(2, montoPagado)
-                preparedStatement?.setDouble(3, montoPagado)
-                preparedStatement?.setInt(4, Const.PaymentStatus.PAID)
-                preparedStatement?.setInt(5, Const.PaymentStatus.PENDING_PAYMENT)
-                preparedStatement?.setInt(6, participanteId)
-                preparedStatement?.executeUpdate()
-            }
-        } catch (e: SQLException) {
-            throw SQLException("Error al actualizar el pago del participante: ${e.message}")
         } finally {
             conn?.close()
         }
@@ -593,6 +568,28 @@ class PartidoRepository {
             }
         } catch (e: SQLException) {
             throw SQLException("Error al agregar fondos al participante: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+    }
+
+    suspend fun updateParticipantFunds(partidoId: Int, userId: Int, amount: Double) {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            val query = """
+            UPDATE participantes
+            SET montoPagado = ?
+            WHERE idPartido = ? AND idParticipante = ?
+        """.trimIndent()
+            conn?.prepareStatement(query).use { stmt ->
+                stmt?.setDouble(1, amount)
+                stmt?.setInt(2, partidoId)
+                stmt?.setInt(3, userId)
+                stmt?.executeUpdate()
+            }
+        } catch (e: SQLException) {
+            throw SQLException("Error al actualizar los fondos del participante: ${e.message}")
         } finally {
             conn?.close()
         }

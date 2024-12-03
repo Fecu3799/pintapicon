@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.app.user.main
+package com.example.pintapiconv3.app.user.team
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -15,8 +15,6 @@ import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.EquipoAdapter
 import com.example.pintapiconv3.repository.EquipoRepository
 import com.example.pintapiconv3.utils.Utils.showToast
-import com.example.pintapiconv3.viewmodel.SharedUserData
-import com.example.pintapiconv3.viewmodel.UserViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,10 +25,10 @@ class TeamDetailsActivity : AppCompatActivity() {
     private lateinit var tvDescripcionEquipo: TextView
     private lateinit var rvEquipo: RecyclerView
     private lateinit var equipoAdapter: EquipoAdapter
-    private lateinit var userViewModel: UserViewModel
 
     private var equipoId: Int = -1
     private val equipoRepository = EquipoRepository()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +44,7 @@ class TeamDetailsActivity : AppCompatActivity() {
         tvDescripcionEquipo = findViewById(R.id.tv_descripcion_equipo)
         rvEquipo = findViewById(R.id.rv_equipo)
 
-        userViewModel = SharedUserData.userViewModel!!
+        //userViewModel = SharedUserData.userViewModel!!
 
         equipoAdapter = EquipoAdapter()
         rvEquipo.layoutManager = LinearLayoutManager(this)

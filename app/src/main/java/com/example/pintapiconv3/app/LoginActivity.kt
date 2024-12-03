@@ -14,7 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.database.DBConnection
 import com.example.pintapiconv3.app.admin.MainActivityAdmin
-import com.example.pintapiconv3.app.user.MainActivity
+import com.example.pintapiconv3.app.user.main.MainActivity
 import com.example.pintapiconv3.app.user.SigninActivity
 import com.example.pintapiconv3.utils.LoginResult
 import com.example.pintapiconv3.repository.UserRepository

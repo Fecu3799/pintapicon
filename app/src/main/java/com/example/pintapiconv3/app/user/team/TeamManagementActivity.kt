@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.app.user.main
+package com.example.pintapiconv3.app.user.team
 
 import android.os.Bundle
 import android.util.Log
@@ -6,22 +6,19 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.EquipoAdapter
-import com.example.pintapiconv3.app.user.MainActivity
 import com.example.pintapiconv3.repository.EquipoRepository
 import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.Utils.isValidEmail
 import com.example.pintapiconv3.utils.Utils.showToast
-import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
@@ -40,9 +37,12 @@ class TeamManagementActivity : AppCompatActivity() {
     private var userId: Int = -1
     private var equipoId: Int = -1
 
-    private lateinit var userViewModel: UserViewModel
     private val userRepository = UserRepository()
     private val equipoRepository = EquipoRepository()
+
+    private val userViewModel: UserViewModel by viewModels {
+        UserViewModelFactory(userRepository)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +54,7 @@ class TeamManagementActivity : AppCompatActivity() {
             insets
         }
 
-        userViewModel = SharedUserData.userViewModel!!
+        //userViewModel = SharedUserData.userViewModel!!
 
         tvNombreEquipo = findViewById(R.id.tv_nombre_equipo)
         etInvitacionEmail = findViewById(R.id.et_invitacion_email)

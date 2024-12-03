@@ -1,33 +1,37 @@
-package com.example.pintapiconv3.app.user
+package com.example.pintapiconv3.app.user.main
 
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import android.view.MotionEvent
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.databinding.ActivityMainBinding
 import com.example.pintapiconv3.app.LoginActivity
 import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import com.example.pintapiconv3.viewmodel.UserViewModelFactory
-import com.example.pintapiconv3.app.user.main.HomeFragment
-import com.example.pintapiconv3.app.user.main.NotifFragment
-import com.example.pintapiconv3.app.user.main.ProfileFragment
-import com.example.pintapiconv3.app.user.main.SearchFragment
-import com.example.pintapiconv3.app.user.main.TeamListDialog
 import com.example.pintapiconv3.models.User
+import com.example.pintapiconv3.repository.NotifRepository
+import com.example.pintapiconv3.repository.PartidoRepository
 import com.example.pintapiconv3.utils.JWToken
 import com.example.pintapiconv3.utils.Utils.showToast
+import com.example.pintapiconv3.viewmodel.NotifViewModel
+import com.example.pintapiconv3.viewmodel.NotifViewModelFactory
+import com.example.pintapiconv3.viewmodel.PartidoViewModel
+import com.example.pintapiconv3.viewmodel.PartidoViewModelFactory
+import com.example.pintapiconv3.viewmodel.SharedMatchData
+import com.example.pintapiconv3.viewmodel.SharedNotifData
 import com.example.pintapiconv3.viewmodel.SharedUserData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,13 +40,27 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var userViewModel: UserViewModel
     private lateinit var binding: ActivityMainBinding
+
+    private val handler = Handler(Looper.getMainLooper())
+    private lateinit var updateNotificationsRunnable: Runnable
+    private val updateInterval: Long = 10000
 
     private var dialog: Dialog? = null
     private var isSessionDialogShown = false
 
     private val userRepository = UserRepository()
+    private val userViewModel: UserViewModel by viewModels {
+        UserViewModelFactory(userRepository)
+    }
+    private val notifRepository = NotifRepository()
+    private val notifViewModel: NotifViewModel by viewModels {
+        NotifViewModelFactory(notifRepository)
+    }
+    private val partidoRepository = PartidoRepository()
+    private val partidoViewModel: PartidoViewModel by viewModels {
+        PartidoViewModelFactory(partidoRepository)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +69,8 @@ class MainActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         SharedUserData.init(this, userRepository)
-        userViewModel = SharedUserData.userViewModel!!
+        SharedNotifData.init(this, notifRepository)
+        SharedMatchData.init(this, partidoRepository)
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
@@ -63,7 +82,8 @@ class MainActivity : AppCompatActivity() {
         setupUI()
         setupNavigation()
         loadUserData()
-
+        setupNotificationObserver()
+        setupNotificationUpdater()
     }
 
     private fun setupUI() {
@@ -100,7 +120,6 @@ class MainActivity : AppCompatActivity() {
             if(item.itemId != R.id.item_signout) checkSession()
             true
         }
-
     }
 
     private fun setupNavigation() {
@@ -115,6 +134,37 @@ class MainActivity : AppCompatActivity() {
                 else userRolTextView.text = "Usuario"
             }
         })
+    }
+
+    private fun setupNotificationObserver() {
+        notifViewModel.hasNotification.observe(this) { hasNotifications ->
+            updateNotificationIcon(hasNotifications)
+        }
+
+    }
+
+    private fun updateNotificationIcon(hasNotification: Boolean) {
+        val notifMenuItem = binding.bottomNav.menu.findItem(R.id.nav_notif)
+        if(hasNotification) {
+            notifMenuItem.setIcon(R.drawable.ic_notif_on)
+        } else {
+            notifMenuItem.setIcon(R.drawable.ic_notif_off)
+        }
+    }
+
+    private fun setupNotificationUpdater() {
+        updateNotificationsRunnable = object : Runnable {
+            override fun run() {
+                val userId = userViewModel.user.value?.id
+                if(userId != null) {
+                    Log.d("MainActivity", "Checking for pending notifications for user $userId")
+                    notifViewModel.checkPendingNotifications(userId)
+                } else {
+                    Log.d("MainActivity", "User ID is null")
+                }
+                handler.postDelayed(this, updateInterval)
+            }
+        }
     }
 
     private fun switchFragment(fragment: Fragment, titleRes: Int, addToBackStack: Boolean = true) {
@@ -216,6 +266,21 @@ class MainActivity : AppCompatActivity() {
             }
             builder.show()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        handler.post(updateNotificationsRunnable)
+
+        val userId = userViewModel.user.value?.id
+        if(userId != null) {
+            notifViewModel.checkPendingNotifications(userId)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        handler.removeCallbacks(updateNotificationsRunnable)
     }
 
     override fun onDestroy() {

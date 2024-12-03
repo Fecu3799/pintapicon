@@ -9,14 +9,17 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.EquiposAdapter
+import com.example.pintapiconv3.app.user.team.TeamDetailsActivity
 import com.example.pintapiconv3.repository.EquipoRepository
-import com.example.pintapiconv3.viewmodel.SharedUserData
+import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.viewmodel.UserViewModel
+import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,9 +29,13 @@ class TeamListDialog : DialogFragment() {
     private lateinit var tvTitulo: TextView
     private lateinit var rvEquipos: RecyclerView
     private lateinit var equiposAdapter: EquiposAdapter
-    private lateinit var userViewModel: UserViewModel
 
     private val equiposRepository = EquipoRepository()
+    private val userRepository = UserRepository()
+
+    private val userViewModel: UserViewModel by activityViewModels {
+        UserViewModelFactory(userRepository)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,8 +61,6 @@ class TeamListDialog : DialogFragment() {
 
         rvEquipos.layoutManager = LinearLayoutManager(requireContext())
         rvEquipos.adapter = equiposAdapter
-
-        userViewModel = SharedUserData.userViewModel!!
 
         userViewModel.user.observe(viewLifecycleOwner) { user ->
             user?.let {

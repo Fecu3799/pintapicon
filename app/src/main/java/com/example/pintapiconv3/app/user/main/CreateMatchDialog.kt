@@ -5,7 +5,6 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.icu.util.Calendar
 import android.os.Bundle
 import android.util.Log
@@ -21,22 +20,24 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.PickCanchaAdapter
+import com.example.pintapiconv3.app.user.match.MatchDetailsActivity
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.models.Cancha
 import com.example.pintapiconv3.models.Partido
 import com.example.pintapiconv3.models.Reserva
 import com.example.pintapiconv3.repository.PartidoRepository
+import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.Const.MatchStatus.PENDING
 import com.example.pintapiconv3.utils.Const.ReservationStatus.PENDING_PAYMENT
 import com.example.pintapiconv3.utils.Utils.calcularHoraFin
-import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
+import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -49,15 +50,19 @@ class CreateMatchDialog : DialogFragment() {
     private var horaSeleccionada: String = ""
     private var canchaSeleccionada: Cancha? = null
 
-    private lateinit var userViewModel: UserViewModel
+
     private val partidoRepository = PartidoRepository()
+    private val userRepository = UserRepository()
     private val sqlServerHelper = SQLServerHelper()
+
+    private val userViewModel: UserViewModel by activityViewModels {
+        UserViewModelFactory(userRepository)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.dialog_new_match, container, false)
         initViews(view)
         setupListeners()
-        userViewModel = SharedUserData.userViewModel!!
         return view
     }
 
@@ -94,11 +99,7 @@ class CreateMatchDialog : DialogFragment() {
         rvSeleccionarCancha.layoutManager = LinearLayoutManager(requireContext())
         rvSeleccionarCancha.adapter = pickCanchaAdapter
 
-        val dividerItemDecoration = DividerItemDecoration(rvSeleccionarCancha.context, DividerItemDecoration.VERTICAL)
-        rvSeleccionarCancha.addItemDecoration(dividerItemDecoration)
-
         initSpinner()
-
     }
 
     private fun setupListeners() {
@@ -188,9 +189,10 @@ class CreateMatchDialog : DialogFragment() {
 
     private fun cargarCanchasDisponibles() {
         lifecycleScope.launch(Dispatchers.Main) {
+            val horaFin = calcularHoraFin(horaSeleccionada)
             val tipoCancha = spnerSeleccionarTipoCancha.selectedItemPosition + 1
             val canchasDisponibles = withContext(Dispatchers.IO) {
-                partidoRepository.getCanchasByTipoYHorario(tipoCancha, fechaSeleccionada, horaSeleccionada)
+                partidoRepository.getCanchasByTipoYHorario(tipoCancha, fechaSeleccionada, horaSeleccionada, horaFin)
             }
             pickCanchaAdapter.setCanchas(canchasDisponibles)
         }
@@ -212,7 +214,7 @@ class CreateMatchDialog : DialogFragment() {
 
             spnerSeleccionarTipoCancha.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    cargarCanchasDisponibles()
+                    //cargarCanchasDisponibles()
                 }
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
@@ -250,6 +252,7 @@ class CreateMatchDialog : DialogFragment() {
             horaSeleccionada = timeFormat.format(calendarSelected.time)
             tvHoraSeleccionada.text = String.format("%02d:%02d", hour, minute)
         }, currentHour, currentMinute, true)
+
         timePickerDialog.show()
     }
 
@@ -260,7 +263,7 @@ class CreateMatchDialog : DialogFragment() {
             R.id.rb_femenino -> 2
             else -> 3
         }
-        val userId = SharedUserData.userViewModel?.user?.value?.id ?: return
+        val userId = userViewModel.user.value?.id ?: return
         val horaFin = calcularHoraFin(horaSeleccionada)
         val metodoPago = when(rgSeleccionarMetodoPago.checkedRadioButtonId) {
             R.id.rb_efectivo -> 1

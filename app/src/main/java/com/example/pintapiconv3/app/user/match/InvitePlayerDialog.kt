@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.app.user.main
+package com.example.pintapiconv3.app.user.match
 
 import android.app.AlertDialog
 import android.app.Dialog

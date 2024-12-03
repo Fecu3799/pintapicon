@@ -134,6 +134,18 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
         }
     }
 
+    fun removeFundsFromParticipant(partidoId: Int, userId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            partidoRepository.updateParticipantFunds(partidoId, userId, 0.0)
+            val updatedParticipant = partidoRepository.getParticipantesByPartidoId(partidoId)
+            withContext(Dispatchers.Main) {
+                _participantes.postValue(updatedParticipant)
+                val accumulatedAmount = updatedParticipant.sumOf { it.montoPagado ?: 0.0 }
+                _montoAcumulado.postValue(accumulatedAmount)
+            }
+        }
+    }
+
     fun removeParticipant(partidoId: Int, userId: Int, abandono: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             partidoRepository.removeParticipant(partidoId, userId, abandono)

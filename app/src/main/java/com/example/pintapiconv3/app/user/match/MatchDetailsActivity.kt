@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.app.user.main
+package com.example.pintapiconv3.app.user.match
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -8,15 +8,16 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
-import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -24,11 +25,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.ParticipanteAdapter
+import com.example.pintapiconv3.app.user.main.ShowMapDialog
 import com.example.pintapiconv3.models.Participante
 import com.example.pintapiconv3.repository.PartidoRepository
 import com.example.pintapiconv3.repository.UserRepository
-import com.example.pintapiconv3.utils.Const
-import com.example.pintapiconv3.utils.Const.AccountStatus.SUSPENDED
 import com.example.pintapiconv3.utils.Const.MatchStatus.CANCELED
 import com.example.pintapiconv3.utils.Const.MatchStatus.FINISHED
 import com.example.pintapiconv3.utils.Const.ReservationStatus.PAID
@@ -36,9 +36,9 @@ import com.example.pintapiconv3.utils.Const.ReservationStatus.PENDING_PAYMENT
 import com.example.pintapiconv3.utils.Utils.parseLatLngFromUrl
 import com.example.pintapiconv3.utils.Utils.showToast
 import com.example.pintapiconv3.viewmodel.PartidoViewModel
-import com.example.pintapiconv3.viewmodel.SharedMatchData
-import com.example.pintapiconv3.viewmodel.SharedUserData
+import com.example.pintapiconv3.viewmodel.PartidoViewModelFactory
 import com.example.pintapiconv3.viewmodel.UserViewModel
+import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -50,8 +50,12 @@ class MatchDetailsActivity : AppCompatActivity() {
     private val partidoRepository = PartidoRepository()
     private val userRepository = UserRepository()
 
-    private lateinit var partidoViewModel: PartidoViewModel
-    private lateinit var userViewModel: UserViewModel
+    private val partidoViewModel: PartidoViewModel by viewModels() {
+        PartidoViewModelFactory(partidoRepository)
+    }
+    private val userViewModel: UserViewModel by viewModels() {
+        UserViewModelFactory(userRepository)
+    }
 
     private var cantParticipantes = 0
     private var amountPerPerson = 0.0
@@ -69,13 +73,14 @@ class MatchDetailsActivity : AppCompatActivity() {
             insets
         }
 
-        SharedMatchData.init(this, partidoRepository, forceInit = true)
+        /*SharedMatchData.init(this, partidoRepository, forceInit = true)
         partidoViewModel = SharedMatchData.matchViewModel!!
 
         if(SharedUserData.userViewModel == null) {
             SharedUserData.init(this, userRepository)
         }
-        userViewModel = SharedUserData.userViewModel!!
+        userViewModel = SharedUserData.userViewModel!!*/
+
         val userId = userViewModel.user.value?.id
 
         if(userId != null) {
@@ -104,7 +109,9 @@ class MatchDetailsActivity : AppCompatActivity() {
         tvMontoTotal = findViewById(R.id.tv_monto_total)
         tvMontoPorPersona = findViewById(R.id.tv_monto_por_persona)
         tvMontoAcumulado = findViewById(R.id.tv_monto_acumulado)
+        tvMontoAcumulado2 = findViewById(R.id.tv_monto_acumulado2)
         btnPagar = findViewById(R.id.btn_pagar)
+        btnQuitarFondos = findViewById(R.id.btn_quitar_fondos)
         tvEstadoReserva = findViewById(R.id.tv_estado_reserva)
         btnSuspender = findViewById(R.id.btn_suspender)
         rvParticipantes = findViewById(R.id.rv_participantes)
@@ -121,6 +128,11 @@ class MatchDetailsActivity : AppCompatActivity() {
         btnPagar.setOnClickListener {
             showAddFundsDialog()
         }
+
+        btnQuitarFondos.setOnClickListener {
+            showRemoveFundsDialog()
+        }
+
     }
 
     @SuppressLint("SetTextI18n")
@@ -184,10 +196,19 @@ class MatchDetailsActivity : AppCompatActivity() {
             totalAmount = reserva.monto
             tvMontoTotal.text = "$${totalAmount}"
 
-            tvEstadoReserva.text = when(reserva.idEstado) {
-                PENDING_PAYMENT -> "Pago pendiente"
-                PAID -> "Pagado"
-                else -> "Cancelada"
+            when(reserva.idEstado) {
+                PENDING_PAYMENT -> {
+                    tvEstadoReserva.text = "Pago pendiente"
+                    tvEstadoReserva.setTextColor(ContextCompat.getColor(this, R.color.red))
+                }
+                PAID -> {
+                    tvEstadoReserva.text = "Pagado"
+                    tvEstadoReserva.setTextColor(ContextCompat.getColor(this, R.color.green))
+                }
+                else -> {
+                    tvEstadoReserva.text = "Cancelada"
+                    tvEstadoReserva.setTextColor(ContextCompat.getColor(this, R.color.red))
+                }
             }
 
             updateAmountPerPerson()
@@ -208,6 +229,24 @@ class MatchDetailsActivity : AppCompatActivity() {
             } else {
                 tvMapa.setOnClickListener {
                     showToast("El predio no tiene ubicación registrada")
+                }
+            }
+
+            if(reserva.idMetodoPago == 1 || reserva.idMetodoPago == 2) {
+                tvMontoAcumulado.visibility = View.GONE
+                tvMontoAcumulado2.visibility = View.GONE
+                btnPagar.visibility = View.GONE
+                btnQuitarFondos.visibility = View.GONE
+                when(reserva.idMetodoPago) {
+                    1 -> {
+                        tvEstadoReserva.text = "Pago en efectivo"
+                        tvEstadoReserva.setTextColor(ContextCompat.getColor(this, R.color.green))
+                        tvEstadoReserva.setBackgroundColor(ContextCompat.getColor(this, R.color.black))
+                    }
+                    2 ->  {
+                        tvEstadoReserva.text = "Pago con transferencia"
+                        tvEstadoReserva.setTextColor(ContextCompat.getColor(this, R.color.blue))
+                    }
                 }
             }
         }
@@ -387,6 +426,34 @@ class MatchDetailsActivity : AppCompatActivity() {
         partidoViewModel.addFundsToParticipant(partidoId, userId, amount, amountPerPerson)
     }
 
+    private fun showRemoveFundsDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Quitar fondos")
+            .setMessage("¿Estas seguro que deseas quitar los fondos?")
+            .setPositiveButton("Si") { dialog, _ ->
+                removeFunds()
+                dialog.dismiss()
+            }
+            .setNegativeButton("No") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun removeFunds() {
+        val userId = userViewModel.user.value?.id ?: return
+        val partidoId = partidoViewModel.match.value?.id ?: return
+        val participantes = partidoViewModel.participantes.value ?: return
+        val participante = participantes.find { it.idParticipante == userId }
+        val montoActual = participante?.montoPagado ?: 0.0
+
+        if(montoActual > 0) {
+            partidoViewModel.removeFundsFromParticipant(partidoId, userId)
+        } else {
+            showToast("No tienes fondos para quitar")
+        }
+    }
+
     private fun showSuspendMatchConfirmation() {
         if(isFinishing || isDestroyed) {
             return
@@ -528,7 +595,7 @@ class MatchDetailsActivity : AppCompatActivity() {
 
         userViewModel.setIsMatch(false)
 
-        SharedMatchData.clear()
+        partidoViewModel.clear()
     }
 
     private lateinit var tvEstadoPartido: TextView
@@ -540,7 +607,9 @@ class MatchDetailsActivity : AppCompatActivity() {
     private lateinit var tvMontoTotal: TextView
     private lateinit var tvMontoPorPersona: TextView
     private lateinit var tvMontoAcumulado: TextView
-    private lateinit var btnPagar: Button
+    private lateinit var tvMontoAcumulado2: TextView
+    private lateinit var btnPagar: ImageButton
+    private lateinit var btnQuitarFondos: ImageButton
     private lateinit var tvEstadoReserva: TextView
     private lateinit var btnSuspender: AppCompatButton
     private lateinit var rvParticipantes: RecyclerView

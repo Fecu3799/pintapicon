@@ -9,11 +9,13 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.repository.EquipoRepository
+import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.viewmodel.UserViewModel
+import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,8 +28,11 @@ class CreateTeamDialog : DialogFragment() {
     private lateinit var createTeamButton: Button
 
     private val equipoRepository = EquipoRepository()
+    private val userRepository = UserRepository()
 
-    private lateinit var userViewModel: UserViewModel
+    private val userViewModel: UserViewModel by activityViewModels {
+        UserViewModelFactory(userRepository)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,10 +43,6 @@ class CreateTeamDialog : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        activity?.let {
-            userViewModel = ViewModelProvider(requireActivity())[UserViewModel::class.java]
-        }
 
         teamNameInput = view.findViewById(R.id.et_teamName)
         teamDescriptionInput = view.findViewById(R.id.et_teamDescription)

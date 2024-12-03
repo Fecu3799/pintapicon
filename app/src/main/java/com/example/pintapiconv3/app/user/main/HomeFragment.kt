@@ -3,7 +3,6 @@ package com.example.pintapiconv3.app.user.main
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import androidx.fragment.app.Fragment
 import android.view.View
@@ -11,16 +10,17 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.pintapiconv3.R
-import com.example.pintapiconv3.app.user.MainActivity
-import com.example.pintapiconv3.models.Partido
+import com.example.pintapiconv3.app.user.match.MatchDetailsActivity
+import com.example.pintapiconv3.app.user.team.TeamManagementActivity
 import com.example.pintapiconv3.repository.EquipoRepository
 import com.example.pintapiconv3.repository.PartidoRepository
 import com.example.pintapiconv3.repository.UserRepository
+import com.example.pintapiconv3.viewmodel.PartidoViewModel
+import com.example.pintapiconv3.viewmodel.PartidoViewModelFactory
 import com.example.pintapiconv3.viewmodel.SharedMatchData
-import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
@@ -33,24 +33,27 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var txtTeamButton: TextView
     private lateinit var matchButton: ImageButton
     private lateinit var txtMatchButton: TextView
-    private lateinit var userViewModel: UserViewModel
 
+
+    private val userRepository = UserRepository()
     private val equipoRepository = EquipoRepository()
     private val partidoRepository = PartidoRepository()
 
+    private val userViewModel: UserViewModel by activityViewModels {
+        UserViewModelFactory(userRepository)
+    }
+
+    private val partidoViewModel: PartidoViewModel by activityViewModels {
+        PartidoViewModelFactory(partidoRepository)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
         val root = inflater.inflate(R.layout.fragment_home, container, false)
         return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        userViewModel = SharedUserData.userViewModel!!
-
-        //val sharedPref = requireContext().getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
-        //val partidoId = sharedPref.getInt("partidoId", -1)
 
         teamButton = view.findViewById(R.id.btn_equipo)
         matchButton = view.findViewById(R.id.btn_partido)
@@ -70,9 +73,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 } else {
                     setupMatchButton(userViewModel.isMatch.value == true)
                 }
-                /*if(partidoId != -1) {
-                    setupMatchButton(true)
-                }*/
             }
         }
 
@@ -146,21 +146,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 dialog.show(childFragmentManager, "CreateMatchDialog")
             }
         }
-
-        /*if(isMatch) {
-            txtMatchButton.text = "Ver partido"
-            matchButton.setOnClickListener {
-                val intent = Intent(requireContext(), MatchDetailsActivity::class.java)
-                intent.putExtra("userId", userViewModel.user.value?.id)
-                startActivity(intent)
-            }
-        } else {
-            txtMatchButton.text = "Crear partido"
-            matchButton.setOnClickListener {
-                val dialog = CreateMatchDialog()
-                dialog.show(childFragmentManager, "CreateMatchDialog")
-            }
-        }*/
     }
 
     private fun participantInMatch() {
@@ -177,7 +162,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
                 if(isParticipant) {
                     val intent = Intent(requireContext(), MatchDetailsActivity::class.java)
-                    //intent.putExtra("userId", currentUserId)
                     startActivity(intent)
                 } else {
                     Toast.makeText(requireContext(), "Has sido expulsado del partido", Toast.LENGTH_SHORT).show()

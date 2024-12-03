@@ -81,5 +81,6 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.play.services.maps) // Google Maps
     implementation(libs.places) // Google Places
+    implementation(libs.androidx.fragment.ktx)
 }
 

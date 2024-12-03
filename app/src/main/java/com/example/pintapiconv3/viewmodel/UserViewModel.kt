@@ -50,6 +50,8 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     fun setIsCaptain(isCaptain: Boolean) {
         _isCaptain.value = isCaptain
     }
+
+
 }
 
 class UserViewModelFactory(private val userRepository: UserRepository): ViewModelProvider.Factory {

@@ -9,36 +9,47 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.InvitacionAdapter
+import com.example.pintapiconv3.app.user.match.MatchDetailsActivity
 import com.example.pintapiconv3.database.SQLServerHelper
 import com.example.pintapiconv3.database.SQLServerHelper.InvitationStates.ACCEPTED
 import com.example.pintapiconv3.database.SQLServerHelper.InvitationStates.REJECTED
 import com.example.pintapiconv3.models.Invitacion
 import com.example.pintapiconv3.repository.EquipoRepository
+import com.example.pintapiconv3.repository.NotifRepository
 import com.example.pintapiconv3.repository.PartidoRepository
-import com.example.pintapiconv3.viewmodel.PartidoViewModel
-import com.example.pintapiconv3.viewmodel.SharedMatchData
-import com.example.pintapiconv3.viewmodel.SharedUserData
+import com.example.pintapiconv3.repository.UserRepository
+import com.example.pintapiconv3.viewmodel.NotifViewModel
+import com.example.pintapiconv3.viewmodel.NotifViewModelFactory
 import com.example.pintapiconv3.viewmodel.UserViewModel
+import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class NotifFragment : Fragment() {
 
-    private lateinit var userViewModel: UserViewModel
-    //private lateinit var partidoViewModel: PartidoViewModel
     private lateinit var rvNotificaciones: RecyclerView
     private lateinit var invitacionesAdapter: InvitacionAdapter
 
     private val equipoRepository = EquipoRepository()
     private val sqlServerHelper = SQLServerHelper()
     private val partidoRepository = PartidoRepository()
+    private val notifRepository = NotifRepository()
+    private val userRepository = UserRepository()
+
+    private val notifViewModel: NotifViewModel by activityViewModels {
+        NotifViewModelFactory(notifRepository)
+    }
+
+    private val userViewModel: UserViewModel by activityViewModels {
+        UserViewModelFactory(userRepository)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,8 +61,6 @@ class NotifFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        userViewModel = SharedUserData.userViewModel!!
 
         rvNotificaciones = view.findViewById(R.id.rv_notificaciones)
         invitacionesAdapter = InvitacionAdapter { invitacion, accept ->
@@ -72,7 +81,6 @@ class NotifFragment : Fragment() {
                         sqlServerHelper.getAllPendingInvitations(userId)
                     }
                     invitacionesAdapter.setInvitaciones(invitaciones)
-                    Log.d("InvitacionAdapter", "Invitaciones cargadas con éxito: $invitaciones")
                 } catch (e: Exception) {
                     Toast.makeText(requireContext(), "Error al cargar las invitaciones pendientes. Detalles: ${e.message}", Toast.LENGTH_SHORT).show()
                     Log.e("InvitacionAdapter", "Error al cargar las invitaciones pendientes. Detalles: ${e.message}")
@@ -84,6 +92,7 @@ class NotifFragment : Fragment() {
     private fun responderInvitacion(invitacion: Invitacion, accept: Boolean) {
         lifecycleScope.launch(Dispatchers.Main) {
             try {
+                val userId = userViewModel.user.value?.id
                 if(invitacion.idEquipo != null) {
                     val nuevoEstado = if(accept) ACCEPTED else REJECTED
                     withContext(Dispatchers.IO) {
@@ -105,19 +114,18 @@ class NotifFragment : Fragment() {
                         )
                     }
                     if(accept) {
-                        val userId = userViewModel.user.value?.id
                         val sharedPref = requireContext().getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
                         with(sharedPref.edit()) {
                             putInt("partidoId_$userId", invitacion.idPartido!!)
                             apply()
                         }
                         val intent = Intent(requireContext(), MatchDetailsActivity::class.java)
-                        //intent.putExtra("partidoId_$userId", invitacion.idPartido!!)
                         startActivity(intent)
                     }
                 }
                 Toast.makeText(requireContext(), if(accept) "Invitacion aceptada" else "Invitacion rechazada", Toast.LENGTH_SHORT).show()
                 cargarInvitacionesPendientes()
+                notifViewModel.checkPendingNotifications(userId!!)
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Error al responder la invitacion. Detalles: ${e.message}", Toast.LENGTH_SHORT).show()
                 Log.e("InvitacionAdapter", "Error al responder la invitacion. Detalles: ${e.message}")
