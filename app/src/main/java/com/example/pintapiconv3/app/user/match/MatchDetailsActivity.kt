@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
@@ -37,6 +38,8 @@ import com.example.pintapiconv3.utils.Utils.parseLatLngFromUrl
 import com.example.pintapiconv3.utils.Utils.showToast
 import com.example.pintapiconv3.viewmodel.PartidoViewModel
 import com.example.pintapiconv3.viewmodel.PartidoViewModelFactory
+import com.example.pintapiconv3.viewmodel.SharedMatchData
+import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
@@ -73,26 +76,25 @@ class MatchDetailsActivity : AppCompatActivity() {
             insets
         }
 
-        /*SharedMatchData.init(this, partidoRepository, forceInit = true)
-        partidoViewModel = SharedMatchData.matchViewModel!!
+        val user = SharedUserData.user
+        if(user != null) {
+            userViewModel.setUser(user)
 
-        if(SharedUserData.userViewModel == null) {
-            SharedUserData.init(this, userRepository)
+        } else {
+            showToast("Error al cargar el usuario")
+            Log.e("MatchDetailsActivity", "Error al cargar el usuario")
+            finish()
         }
-        userViewModel = SharedUserData.userViewModel!!*/
 
         val userId = userViewModel.user.value?.id
+        val partidoId = intent.getIntExtra("MATCH_ID_$userId", -1)
 
-        if(userId != null) {
-            val sharedPref = getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
-            val partidoId = sharedPref.getInt("partidoId_$userId", -1)
-
-            if(partidoId != -1) {
-                partidoViewModel.setMatch(partidoId)
-            } else {
-                showToast("Error al cargar el partido")
-                finish()
-            }
+        if(partidoId != -1) {
+            partidoViewModel.setMatch(partidoId)
+        } else {
+            showToast("Error al cargar el partido")
+            Log.e("MatchDetailsActivity", "Error al cargar el partido")
+            finish()
         }
 
         initViews()
@@ -595,7 +597,7 @@ class MatchDetailsActivity : AppCompatActivity() {
 
         userViewModel.setIsMatch(false)
 
-        partidoViewModel.clear()
+        SharedMatchData.clear()
     }
 
     private lateinit var tvEstadoPartido: TextView

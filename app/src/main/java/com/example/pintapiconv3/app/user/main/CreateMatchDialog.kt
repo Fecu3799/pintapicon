@@ -36,6 +36,7 @@ import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.Const.MatchStatus.PENDING
 import com.example.pintapiconv3.utils.Const.ReservationStatus.PENDING_PAYMENT
 import com.example.pintapiconv3.utils.Utils.calcularHoraFin
+import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
@@ -302,17 +303,13 @@ class CreateMatchDialog : DialogFragment() {
                 }
                 if(idPartido > 0) {
                     Toast.makeText(requireContext(), "Partido creado exitosamente", Toast.LENGTH_SHORT).show()
-                    userViewModel.setIsMatch(true)
-                    userViewModel.setIsCaptain(true)
+                    SharedUserData.isMatch = true
+                    SharedUserData.isCaptain = true
+                    SharedUserData.matchId = idPartido
 
-                    val sharedPref = requireContext().getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
-                    val userId = userViewModel.user.value?.id ?: return@launch
-                    with(sharedPref.edit()) {
-                        putInt("partidoId_$userId", idPartido)
-                        apply()
-                    }
-
-                    startActivity(Intent(requireContext(), MatchDetailsActivity::class.java))
+                    val intent = Intent(requireContext(), MatchDetailsActivity::class.java)
+                    intent.putExtra("MATCH_ID_$userId", idPartido)
+                    startActivity(intent)
 
                     dismiss()
                 } else {

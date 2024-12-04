@@ -27,6 +27,9 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     private val _isCaptain = MutableLiveData<Boolean>()
     val isCaptain: LiveData<Boolean> get() = _isCaptain
 
+    private val _matchId = MutableLiveData<Int>()
+    val matchId: LiveData<Int> get() = _matchId
+
     fun setUser(user: User) {
         _user.value = user
     }
@@ -51,6 +54,9 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         _isCaptain.value = isCaptain
     }
 
+    fun setMatchId(matchId: Int) {
+        _matchId.value = matchId
+    }
 
 }
 
@@ -64,16 +70,20 @@ class UserViewModelFactory(private val userRepository: UserRepository): ViewMode
 }
 
 object SharedUserData {
-    var userViewModel: UserViewModel? = null
+    var user: User? = null
+    var hasTeam: Boolean = false
+    var isMatch: Boolean = false
+    var isCaptain: Boolean = false
+    var matchId: Int = -1
 
-    fun init(viewModelStoreOwner: ViewModelStoreOwner, userRepository: UserRepository) {
-        if(userViewModel == null) {
-            val userViewModelFactory = UserViewModelFactory(userRepository)
-            userViewModel = ViewModelProvider(viewModelStoreOwner, userViewModelFactory)[UserViewModel::class.java]
-        }
+    fun init(user: User) {
+        this.user = user
     }
 
     fun clear() {
-        userViewModel = null
+        user = null
+        hasTeam = false
+        isMatch = false
+        isCaptain = false
     }
 }

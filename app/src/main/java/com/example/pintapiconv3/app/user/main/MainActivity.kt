@@ -68,10 +68,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        SharedUserData.init(this, userRepository)
-        SharedNotifData.init(this, notifRepository)
-        SharedMatchData.init(this, partidoRepository)
-
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.frame_layout, HomeFragment())
@@ -229,6 +225,8 @@ class MainActivity : AppCompatActivity() {
             posicion = userData["idPosicion"]?.toInt() ?: 0,
             isAdmin = userData["isAdmin"]?.toInt() ?: 0
         )
+
+        SharedUserData.init(user)
 
         userViewModel.setUser(user)
     }
