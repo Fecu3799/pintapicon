@@ -43,6 +43,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         UserViewModelFactory(userRepository)
     }
 
+    private val partidoViewModel: PartidoViewModel by activityViewModels {
+        PartidoViewModelFactory(partidoRepository)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_home, container, false)
         return root
@@ -72,11 +76,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         }
 
+        userViewModel.isMatch.observe(viewLifecycleOwner) { isMatch ->
+            if(isMatch && partidoViewModel.haFinalizado.value == false) {
+                setupMatchButton(true)
+            } else {
+                setupMatchButton(false)
+            }
+        }
+
         userViewModel.hasTeam.observe(viewLifecycleOwner) { hasTeam ->
             setupTeamButton(hasTeam)
-        }
-        userViewModel.isMatch.observe(viewLifecycleOwner) { isMatch ->
-            setupMatchButton(isMatch)
         }
 
         parentFragmentManager.setFragmentResultListener("matchCreated", viewLifecycleOwner) { _, _ ->

@@ -15,6 +15,7 @@ import com.example.pintapiconv3.utils.Const.MatchStatus.IN_COURSE
 import com.example.pintapiconv3.utils.Const.MatchStatus.PENDING
 import com.example.pintapiconv3.utils.Const.PaymentStatus.PAID
 import com.example.pintapiconv3.utils.Const.PaymentStatus.PENDING_PAYMENT
+import com.example.pintapiconv3.utils.Const.ReservationStatus.CANCELED
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.sql.Connection
@@ -144,6 +145,7 @@ class PartidoRepository {
                         WHERE r.idCancha = c.id
                         AND r.fecha_reserva = ?
                         AND (r.hora_inicio < ? AND ? < r.hora_fin)
+                        AND r.idEstado IN (19, 20)
                     ) THEN 0
                     ELSE 1
                 END AS disponible
@@ -528,15 +530,22 @@ class PartidoRepository {
         return miembros
     }
 
-    suspend fun updateMatchStatus(partidoId: Int, newStatus: Int) {
+    suspend fun updateMatchStatus(partidoId: Int, reservaId: Int, newStatus: Int) {
         var conn: Connection? = null
         try {
             conn = DBConnection.getConnection()
             val query = "UPDATE partidos SET idEstado = ? WHERE id = ?"
+            val query2 = "UPDATE reservas SET idEstado = ? WHERE id = ?"
 
             conn?.prepareStatement(query).use { preparedStatement ->
                 preparedStatement?.setInt(1, newStatus)
                 preparedStatement?.setInt(2, partidoId)
+                preparedStatement?.executeUpdate()
+            }
+
+            conn?.prepareStatement(query2).use { preparedStatement ->
+                preparedStatement?.setInt(1, CANCELED)
+                preparedStatement?.setInt(2, reservaId)
                 preparedStatement?.executeUpdate()
             }
         } catch (e: SQLException) {

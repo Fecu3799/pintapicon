@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var userViewModel: UserViewModel
     private lateinit var notifViewModel: NotifViewModel
+    private lateinit var partidoViewModel: PartidoViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         notifViewModel = SharedNotifData.notifViewModel!!
 
         SharedMatchData.init(this, partidoRepository)
+        partidoViewModel = SharedMatchData.matchViewModel!!
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()

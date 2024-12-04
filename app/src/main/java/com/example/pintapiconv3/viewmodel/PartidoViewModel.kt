@@ -1,5 +1,8 @@
 package com.example.pintapiconv3.viewmodel
 
+import android.util.Log
+import androidx.compose.ui.text.font.emptyCacheFontFamilyResolver
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,6 +14,7 @@ import com.example.pintapiconv3.models.Participante
 import com.example.pintapiconv3.models.Partido
 import com.example.pintapiconv3.models.Reserva
 import com.example.pintapiconv3.repository.PartidoRepository
+import com.example.pintapiconv3.utils.Const.MatchStatus.FINISHED
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -37,6 +41,9 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
 
     private val _montoAcumulado = MutableLiveData<Double>()
     val montoAcumulado: LiveData<Double> get() = _montoAcumulado
+
+    private val _haFinalizado = MutableLiveData<Boolean>(false)
+    val haFinalizado: LiveData<Boolean> get() = _haFinalizado
 
     private val _countdown = MutableLiveData<String>()
     val countdown: LiveData<String> get() = _countdown
@@ -69,25 +76,41 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
             val partidoDate = dateFormat.parse("$fecha $hora")
 
             var countdownActive = true
+            var countingUp = false
+
             while(countdownActive) {
                 val now = Calendar.getInstance().time
 
                 partidoDate?.let {
-                    val diff = it.time - now.time
-                    if(diff > 0) {
+                    val diff = if (!countingUp) {
+                        it.time - now.time
+                    } else {
+                        now.time - it.time
+                    }
+
+                    if(diff > 0 && !countingUp) {
                         val days = TimeUnit.MILLISECONDS.toDays(diff)
                         val hours = TimeUnit.MILLISECONDS.toHours(diff) % 24
                         val minutes = TimeUnit.MILLISECONDS.toMinutes(diff) % 60
                         val seconds = TimeUnit.MILLISECONDS.toSeconds(diff) % 60
-                        _countdown.value = if (days > 0) {
-                            if(days.toInt() == 1) "$days Dia : $hours Hs : $minutes Min"
-                            else "$days Dias : $hours Hs : $minutes Min"
-                        } else {
-                            "$hours Hs : $minutes Min : $seconds Seg"
-                        }
+
+                        _countdown.postValue(
+                            if (days > 0) {
+                                if(days.toInt() == 1) "$days Dia : $hours Hs : $minutes Min"
+                                else "$days Dias : $hours Hs : $minutes Min"
+                            } else {
+                                "$hours Hs : $minutes Min : $seconds Seg"
+                            }
+                        )
+                    } else if (!countingUp) {
+                        countingUp = true
+                        _countdown.postValue("Partido en curso")
                     } else {
-                        _countdown.value = "Partido en curso"
-                        countdownActive = false
+                        val elapsedMinutes = TimeUnit.MILLISECONDS.toMinutes(diff)
+                        if(elapsedMinutes >= 1) {  // 1 minuto para pruebas
+                            finalizeMatch()
+                            countdownActive = false
+                        }
                     }
                 }
                 delay(1000)
@@ -109,9 +132,9 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
         }
     }
 
-    fun updateMatchStatus(partidoId: Int, newStatus: Int) {
+    fun updateMatchStatus(partidoId: Int, reservaId: Int, newStatus: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            partidoRepository.updateMatchStatus(partidoId, newStatus)
+            partidoRepository.updateMatchStatus(partidoId, reservaId, newStatus)
 
             val updatedMatch = partidoRepository.getPartidoById(partidoId)
             withContext(Dispatchers.Main) {
@@ -168,6 +191,31 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
             val updatedReserva = partidoRepository.getReservaByPartidoId(partidoId)
             withContext(Dispatchers.Main) {
                 _reserva.postValue(updatedReserva)
+            }
+        }
+    }
+
+    fun markAsFinalized() {
+        _haFinalizado.value = true
+    }
+
+    private fun finalizeMatch() {
+        val partidoId = match.value?.id ?: return
+        val reservaId = reserva.value?.id ?: return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                partidoRepository.updateMatchStatus(partidoId, reservaId, FINISHED)
+
+                withContext(Dispatchers.Main) {
+                    _match.value = _match.value?.copy(idEstado = FINISHED)
+                    _countdown.postValue("Partido finalizado")
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    _countdown.postValue("Error al finalizar partido")
+                }
+                Log.e("PartidoViewModel", "Error al finalizar partido: ${e.message}")
             }
         }
     }

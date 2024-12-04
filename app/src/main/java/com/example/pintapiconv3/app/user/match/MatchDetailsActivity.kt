@@ -139,7 +139,7 @@ class MatchDetailsActivity : AppCompatActivity() {
 
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "DefaultLocale")
     private fun setupObservers() {
         // Observer del partido
         partidoViewModel.match.observe(this) { partido ->
@@ -147,16 +147,30 @@ class MatchDetailsActivity : AppCompatActivity() {
             val partidoId = partido.id
             val currentUserId = userViewModel.user.value?.id ?: return@observe
 
-            verificarParticipacion(partidoId, currentUserId)
+            if(partidoViewModel.haFinalizado.value == true) {
+                configureUI()
+                return@observe
+            }
 
-            if(partido.idEstado == FINISHED || partido.idEstado == CANCELED) {
-                showMatchEndedDialog()
+            when(partido.idEstado) {
+                FINISHED -> showMatchStateDialog(
+                    title = "Partido finalizado",
+                    message = "El partido ha finalizado",
+                    userId = currentUserId
+                )
+                CANCELED -> showMatchStateDialog(
+                    title = "Partido Suspendido",
+                    message = "El partido ha sido suspendido por el organizador",
+                    userId = currentUserId
+                )
+                else -> {
+                    verificarParticipacion(partidoId, currentUserId)
+                }
             }
 
             // Configuracion del rol del usuario
             val organizerId = partido.idOrganizador
             isOrganizer = currentUserId == organizerId
-            configureUI()
 
             // Configuración del tipo de partido
             val tipoPartido = when(partido.idTipoPartido) {
@@ -165,6 +179,8 @@ class MatchDetailsActivity : AppCompatActivity() {
                 else -> "Mixto"
             }
             tvTipoPartido.text = "Tipo de partido: $tipoPartido"
+
+            configureUI()
         }
 
         // Observer de la cancha
@@ -273,6 +289,7 @@ class MatchDetailsActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SetTextI18n", "DefaultLocale")
     private fun updateAmountPerPerson() {
         if(cantParticipantes > 0 && totalAmount > 0) {
             amountPerPerson = totalAmount / cantParticipantes
@@ -289,13 +306,18 @@ class MatchDetailsActivity : AppCompatActivity() {
             }
 
             if(!isParticipant) {
-                showParticipantRemoved()
+                showMatchStateDialog(
+                    title = "Expulsado",
+                    message = "Has sido expulsado del partido",
+                    userId = userId
+                )
             } else {
                 configureUI()
             }
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun configureUI() {
         if(isOrganizer) {                                   // ORGANIZADOR
             btnInvitarJugador.visibility = View.VISIBLE
@@ -478,9 +500,10 @@ class MatchDetailsActivity : AppCompatActivity() {
 
     private fun suspendMatch() {
         val partidoId = partidoViewModel.match.value?.id ?: return
+        val reservaId = partidoViewModel.reserva.value?.id ?: return
         val userId = userViewModel.user.value?.id ?: return
 
-        partidoViewModel.updateMatchStatus(partidoId, CANCELED)
+        partidoViewModel.updateMatchStatus(partidoId, reservaId, CANCELED)
 
         deleteMatch(userId)
 
@@ -545,6 +568,7 @@ class MatchDetailsActivity : AppCompatActivity() {
         handler.removeCallbacks(updateCountdownRunnable)
     }
 
+    @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.O)
     private fun checkIfMatchEnded() {
         val partido = partidoViewModel.match.value ?: return
@@ -555,11 +579,28 @@ class MatchDetailsActivity : AppCompatActivity() {
 
         val ahora = LocalDateTime.now()
 
-        val partidoFin = fechaHoraPartido.plusHours(1)
+        val partidoFin = fechaHoraPartido.plusMinutes(5)
 
         if(ahora.isAfter(partidoFin) && partido.idEstado != FINISHED) {
+            tvEstadoPartido.text = "Partido finalizado"
             showMatchEndedDialog()
         }
+    }
+
+    private fun showMatchStateDialog(title: String, message: String, userId: Int) {
+        if(isFinishing || isDestroyed) return
+
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("Aceptar") { dialog, _ ->
+                dialog.dismiss()
+                partidoViewModel.markAsFinalized()
+                deleteMatch(userId)
+                finish()
+            }
+            .show()
     }
 
     private fun showMatchEndedDialog() {
@@ -580,9 +621,10 @@ class MatchDetailsActivity : AppCompatActivity() {
 
     private fun finalizarPartido() {
         val partidoId = partidoViewModel.match.value?.id ?: return
+        val reservaId = partidoViewModel.reserva.value?.id ?: return
         val userId = userViewModel.user.value?.id ?: return
 
-        partidoViewModel.updateMatchStatus(partidoId, FINISHED)
+        partidoViewModel.updateMatchStatus(partidoId, reservaId, FINISHED)
 
         deleteMatch(userId)
 
