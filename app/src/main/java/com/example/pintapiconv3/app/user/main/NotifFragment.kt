@@ -26,7 +26,6 @@ import com.example.pintapiconv3.repository.PartidoRepository
 import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.viewmodel.NotifViewModel
 import com.example.pintapiconv3.viewmodel.NotifViewModelFactory
-import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
@@ -115,13 +114,13 @@ class NotifFragment : Fragment() {
                         )
                     }
                     if(accept) {
-                        userViewModel.setIsMatch(true)
-                        userViewModel.setMatchId(invitacion.idPartido!!)
-                        SharedUserData.isMatch = true
-                        SharedUserData.matchId = invitacion.idPartido!!
+                        val sharedPref = requireContext().getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
+                        with(sharedPref.edit()) {
+                            putInt("partidoId_$userId", invitacion.idPartido!!)
+                            apply()
+                        }
 
                         val intent = Intent(requireContext(), MatchDetailsActivity::class.java)
-                        intent.putExtra("MATCH_ID_$userId", invitacion.idPartido!!)
                         startActivity(intent)
                     }
                 }

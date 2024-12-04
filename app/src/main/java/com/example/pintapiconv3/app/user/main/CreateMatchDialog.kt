@@ -303,13 +303,16 @@ class CreateMatchDialog : DialogFragment() {
                 }
                 if(idPartido > 0) {
                     Toast.makeText(requireContext(), "Partido creado exitosamente", Toast.LENGTH_SHORT).show()
-                    SharedUserData.isMatch = true
-                    SharedUserData.isCaptain = true
-                    SharedUserData.matchId = idPartido
+                    userViewModel.setIsMatch(true)
+                    userViewModel.setIsCaptain(true)
 
-                    val intent = Intent(requireContext(), MatchDetailsActivity::class.java)
-                    intent.putExtra("MATCH_ID_$userId", idPartido)
-                    startActivity(intent)
+                    val sharedPref = requireContext().getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
+                    with(sharedPref.edit()) {
+                        putInt("partidoId_$userId", idPartido)
+                        apply()
+                    }
+
+                    startActivity(Intent(requireContext(), MatchDetailsActivity::class.java))
 
                     dismiss()
                 } else {

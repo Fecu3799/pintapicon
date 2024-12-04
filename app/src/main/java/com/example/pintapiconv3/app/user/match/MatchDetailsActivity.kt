@@ -53,12 +53,8 @@ class MatchDetailsActivity : AppCompatActivity() {
     private val partidoRepository = PartidoRepository()
     private val userRepository = UserRepository()
 
-    private val partidoViewModel: PartidoViewModel by viewModels() {
-        PartidoViewModelFactory(partidoRepository)
-    }
-    private val userViewModel: UserViewModel by viewModels() {
-        UserViewModelFactory(userRepository)
-    }
+    private lateinit var userViewModel: UserViewModel
+    private lateinit var partidoViewModel: PartidoViewModel
 
     private var cantParticipantes = 0
     private var amountPerPerson = 0.0
@@ -76,24 +72,30 @@ class MatchDetailsActivity : AppCompatActivity() {
             insets
         }
 
-        val user = SharedUserData.user
-        if(user != null) {
-            userViewModel.setUser(user)
+        SharedMatchData.init(this, partidoRepository, forceInit = true)
+        partidoViewModel = SharedMatchData.matchViewModel!!
 
+        if(SharedUserData.userViewModel == null) {
+            SharedUserData.init(this, userRepository)
+        }
+        userViewModel = SharedUserData.userViewModel!!
+
+        val userId = userViewModel.user.value?.id
+
+        if(userId != null) {
+            val sharedPref = getSharedPreferences("MatchPref", Context.MODE_PRIVATE)
+            val partidoId = sharedPref.getInt("partidoId_$userId", -1)
+
+            if(partidoId != -1) {
+                partidoViewModel.setMatch(partidoId)
+            } else {
+                showToast("Error al cargar el partido")
+                Log.e("MatchDetailsActivity", "Error al cargar el partido")
+                finish()
+            }
         } else {
             showToast("Error al cargar el usuario")
             Log.e("MatchDetailsActivity", "Error al cargar el usuario")
-            finish()
-        }
-
-        val userId = userViewModel.user.value?.id
-        val partidoId = intent.getIntExtra("MATCH_ID_$userId", -1)
-
-        if(partidoId != -1) {
-            partidoViewModel.setMatch(partidoId)
-        } else {
-            showToast("Error al cargar el partido")
-            Log.e("MatchDetailsActivity", "Error al cargar el partido")
             finish()
         }
 

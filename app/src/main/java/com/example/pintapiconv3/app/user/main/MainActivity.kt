@@ -32,6 +32,7 @@ import com.example.pintapiconv3.viewmodel.PartidoViewModel
 import com.example.pintapiconv3.viewmodel.PartidoViewModelFactory
 import com.example.pintapiconv3.viewmodel.SharedMatchData
 import com.example.pintapiconv3.viewmodel.SharedNotifData
+import com.example.pintapiconv3.viewmodel.SharedNotifData.notifViewModel
 import com.example.pintapiconv3.viewmodel.SharedUserData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,23 +51,25 @@ class MainActivity : AppCompatActivity() {
     private var isSessionDialogShown = false
 
     private val userRepository = UserRepository()
-    private val userViewModel: UserViewModel by viewModels {
-        UserViewModelFactory(userRepository)
-    }
     private val notifRepository = NotifRepository()
-    private val notifViewModel: NotifViewModel by viewModels {
-        NotifViewModelFactory(notifRepository)
-    }
     private val partidoRepository = PartidoRepository()
-    private val partidoViewModel: PartidoViewModel by viewModels {
-        PartidoViewModelFactory(partidoRepository)
-    }
+
+    private lateinit var userViewModel: UserViewModel
+    private lateinit var notifViewModel: NotifViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        SharedUserData.init(this, userRepository)
+        userViewModel = SharedUserData.userViewModel!!
+
+        SharedNotifData.init(this, notifRepository)
+        notifViewModel = SharedNotifData.notifViewModel!!
+
+        SharedMatchData.init(this, partidoRepository)
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
@@ -136,7 +139,6 @@ class MainActivity : AppCompatActivity() {
         notifViewModel.hasNotification.observe(this) { hasNotifications ->
             updateNotificationIcon(hasNotifications)
         }
-
     }
 
     private fun updateNotificationIcon(hasNotification: Boolean) {
@@ -225,8 +227,6 @@ class MainActivity : AppCompatActivity() {
             posicion = userData["idPosicion"]?.toInt() ?: 0,
             isAdmin = userData["isAdmin"]?.toInt() ?: 0
         )
-
-        SharedUserData.init(user)
 
         userViewModel.setUser(user)
     }
