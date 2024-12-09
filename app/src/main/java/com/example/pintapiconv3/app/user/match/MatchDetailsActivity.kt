@@ -3,6 +3,7 @@ package com.example.pintapiconv3.app.user.match
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
+import android.icu.text.SimpleDateFormat
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -30,10 +31,17 @@ import com.example.pintapiconv3.app.user.main.ShowMapDialog
 import com.example.pintapiconv3.models.Participante
 import com.example.pintapiconv3.repository.PartidoRepository
 import com.example.pintapiconv3.repository.UserRepository
+import com.example.pintapiconv3.utils.Const
 import com.example.pintapiconv3.utils.Const.MatchStatus.CANCELED
 import com.example.pintapiconv3.utils.Const.MatchStatus.FINISHED
+import com.example.pintapiconv3.utils.Const.MatchStatus.SUSPENDED
+import com.example.pintapiconv3.utils.Const.PaymentStatus.KICKED_OUT
+import com.example.pintapiconv3.utils.Const.PaymentStatus.MATCH_CANCELED
+import com.example.pintapiconv3.utils.Const.PaymentStatus.MATCH_PLAYED
+import com.example.pintapiconv3.utils.Const.PaymentStatus.MATCH_SUSPENDED
 import com.example.pintapiconv3.utils.Const.ReservationStatus.PAID
 import com.example.pintapiconv3.utils.Const.ReservationStatus.PENDING_PAYMENT
+import com.example.pintapiconv3.utils.Utils.convertDateFormat
 import com.example.pintapiconv3.utils.Utils.parseLatLngFromUrl
 import com.example.pintapiconv3.utils.Utils.showToast
 import com.example.pintapiconv3.viewmodel.PartidoViewModel
@@ -47,6 +55,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class MatchDetailsActivity : AppCompatActivity() {
 
@@ -118,6 +128,7 @@ class MatchDetailsActivity : AppCompatActivity() {
         btnQuitarFondos = findViewById(R.id.btn_quitar_fondos)
         tvEstadoReserva = findViewById(R.id.tv_estado_reserva)
         btnSuspender = findViewById(R.id.btn_suspender)
+        btnConfirmar = findViewById(R.id.btn_confirmar)
         rvParticipantes = findViewById(R.id.rv_participantes)
         btnInvitarJugador = findViewById(R.id.btn_invitar_jugador)
 
@@ -137,6 +148,9 @@ class MatchDetailsActivity : AppCompatActivity() {
             showRemoveFundsDialog()
         }
 
+        btnConfirmar.setOnClickListener {
+            showAssistConfirmationDialog()
+        }
     }
 
     @SuppressLint("SetTextI18n", "DefaultLocale")
@@ -153,16 +167,36 @@ class MatchDetailsActivity : AppCompatActivity() {
             }
 
             when(partido.idEstado) {
-                FINISHED -> showMatchStateDialog(
-                    title = "Partido finalizado",
-                    message = "El partido ha finalizado",
-                    userId = currentUserId
-                )
-                CANCELED -> showMatchStateDialog(
-                    title = "Partido Suspendido",
-                    message = "El partido ha sido suspendido por el organizador",
-                    userId = currentUserId
-                )
+                FINISHED -> {
+                    val participant = partidoViewModel.participantes.value?.find { it.idParticipante == currentUserId }
+                    if(participant?.idEstado != MATCH_PLAYED) {
+                        showMatchStateDialog(
+                            title = "Partido finalizado",
+                            message = "El partido ha finalizado",
+                            userId = currentUserId,
+                            newStatus = MATCH_PLAYED
+                        )
+                    }
+                }
+                CANCELED -> {
+                    showMatchStateDialog(
+                        title = "Partido cancelado",
+                        message = "El partido ha sido cancelado",
+                        userId = currentUserId,
+                        newStatus = MATCH_CANCELED
+                    )
+                }
+                SUSPENDED -> {
+                    val participant = partidoViewModel.participantes.value?.find { it.idParticipante == currentUserId }
+                    if(participant?.idEstado != MATCH_SUSPENDED) {
+                        showMatchStateDialog(
+                            title = "Partido suspendido",
+                            message = "El partido ha sido suspendido",
+                            userId = currentUserId,
+                            newStatus = MATCH_SUSPENDED
+                        )
+                    }
+                }
                 else -> {
                     verificarParticipacion(partidoId, currentUserId)
                 }
@@ -197,14 +231,20 @@ class MatchDetailsActivity : AppCompatActivity() {
 
         // Observer del monto acumulado
         partidoViewModel.montoAcumulado.observe(this) { accumulated ->
+            val partido = partidoViewModel.match.value ?: return@observe
+            val reserva = partidoViewModel.reserva.value ?: return@observe
+
+            if(reserva.idEstado == Const.ReservationStatus.FINISHED || reserva.idEstado == Const.ReservationStatus.CANCELED) {
+                return@observe
+            }
+
             tvMontoAcumulado.text = "$${String.format("%.2f", accumulated)}"
-            val totalAmount = partidoViewModel.reserva.value?.monto ?: 0.0
+            val totalAmount = reserva.monto
+
             if(accumulated == totalAmount) {
-                val partidoId = partidoViewModel.match.value?.id ?: return@observe
-                partidoViewModel.updateReservationStatus(partidoId, PAID)
+                partidoViewModel.updateReservationStatus(partido.id, PAID)
             } else {
-                val partidoId = partidoViewModel.match.value?.id ?: return@observe
-                partidoViewModel.updateReservationStatus(partidoId, PENDING_PAYMENT)
+                partidoViewModel.updateReservationStatus(partido.id, PENDING_PAYMENT)
             }
         }
 
@@ -212,20 +252,21 @@ class MatchDetailsActivity : AppCompatActivity() {
         partidoViewModel.reserva.observe(this) { reserva ->
             // Configuración datos de la reserva
             tvPredio.text = "Predio: ${reserva.predio}"
-            tvFechaHora.text = "${reserva.fecha} - ${reserva.horaInicio}"
+            val fechaReserva = convertDateFormat(reserva.fecha, false)
+            tvFechaHora.text = "$fechaReserva - ${reserva.horaInicio}"
             totalAmount = reserva.monto
             tvMontoTotal.text = "$${totalAmount}"
 
             when(reserva.idEstado) {
-                PENDING_PAYMENT -> {
+                Const.ReservationStatus.PENDING_PAYMENT -> {
                     tvEstadoReserva.text = "Pago pendiente"
                     tvEstadoReserva.setTextColor(ContextCompat.getColor(this, R.color.red))
                 }
-                PAID -> {
+                Const.ReservationStatus.PAID -> {
                     tvEstadoReserva.text = "Pagado"
                     tvEstadoReserva.setTextColor(ContextCompat.getColor(this, R.color.green))
                 }
-                else -> {
+                Const.ReservationStatus.CANCELED -> {
                     tvEstadoReserva.text = "Cancelada"
                     tvEstadoReserva.setTextColor(ContextCompat.getColor(this, R.color.red))
                 }
@@ -286,6 +327,7 @@ class MatchDetailsActivity : AppCompatActivity() {
         // Observer del contador
         partidoViewModel.countdown.observe(this) { countdown ->
             tvEstadoPartido.text = countdown
+            partidoViewModel.verifyMatchStatus()
         }
     }
 
@@ -309,7 +351,8 @@ class MatchDetailsActivity : AppCompatActivity() {
                 showMatchStateDialog(
                     title = "Expulsado",
                     message = "Has sido expulsado del partido",
-                    userId = userId
+                    userId = userId,
+                    newStatus = KICKED_OUT
                 )
             } else {
                 configureUI()
@@ -355,21 +398,18 @@ class MatchDetailsActivity : AppCompatActivity() {
         }
     }
 
-    private fun showParticipantRemoved() {
-        if(isFinishing || isDestroyed) {
-            return
-        }
-
-        val userId = userViewModel.user.value?.id ?: return
-
+    private fun showAssistConfirmationDialog() {
         AlertDialog.Builder(this)
-            .setTitle("Expulsado")
-            .setMessage("El organizador te ha expulsado del partido")
-            .setCancelable(false)
-            .setPositiveButton("Salir") { dialog, _ ->
+            .setTitle("Confirmar asistencia")
+            .setMessage("¿Estas seguro que deseas confirmar tu asistencia?")
+            .setPositiveButton("Si") { dialog, _ ->
+                val userId = userViewModel.user.value?.id ?: return@setPositiveButton
+                partidoViewModel.updateParticipantStatus(userId, Const.PaymentStatus.PAID)
+                btnConfirmar.visibility = View.GONE
                 dialog.dismiss()
-                deleteMatch(userId)
-                finish()
+            }
+            .setNegativeButton("No") { dialog, _ ->
+                dialog.dismiss()
             }
             .show()
     }
@@ -503,7 +543,9 @@ class MatchDetailsActivity : AppCompatActivity() {
         val reservaId = partidoViewModel.reserva.value?.id ?: return
         val userId = userViewModel.user.value?.id ?: return
 
-        partidoViewModel.updateMatchStatus(partidoId, reservaId, CANCELED)
+        partidoViewModel.stopCountdown()
+        partidoViewModel.updateMatchStatus(partidoId, reservaId, SUSPENDED)
+        partidoViewModel.updateParticipantStatus(userId, MATCH_SUSPENDED)
 
         deleteMatch(userId)
 
@@ -541,33 +583,6 @@ class MatchDetailsActivity : AppCompatActivity() {
         finish()
     }
 
-    private val handler = Handler(Looper.getMainLooper())
-    private val updateCountdownRunnable = object : Runnable {
-        override fun run() {
-            val partidoId = partidoViewModel.match.value?.id ?: return
-            partidoViewModel.updateParticipantes(partidoId)
-            handler.postDelayed(this, 10000)
-        }
-    }
-
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun onResume() {
-        super.onResume()
-        handler.post(updateCountdownRunnable)
-        
-        val partido = partidoViewModel.match.value
-        if(partido != null) {
-            partidoViewModel.ensureCountdownIsRunning(partido.fecha, partido.hora)
-            checkIfMatchEnded()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        handler.removeCallbacks(updateCountdownRunnable)
-    }
-
     @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.O)
     private fun checkIfMatchEnded() {
@@ -587,22 +602,6 @@ class MatchDetailsActivity : AppCompatActivity() {
         }
     }
 
-    private fun showMatchStateDialog(title: String, message: String, userId: Int) {
-        if(isFinishing || isDestroyed) return
-
-        AlertDialog.Builder(this)
-            .setTitle(title)
-            .setMessage(message)
-            .setCancelable(false)
-            .setPositiveButton("Aceptar") { dialog, _ ->
-                dialog.dismiss()
-                partidoViewModel.markAsFinalized()
-                deleteMatch(userId)
-                finish()
-            }
-            .show()
-    }
-
     private fun showMatchEndedDialog() {
         if(isFinishing || isDestroyed) {
             return
@@ -619,12 +618,30 @@ class MatchDetailsActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showMatchStateDialog(title: String, message: String, userId: Int, newStatus: Int) {
+        if(isFinishing || isDestroyed) return
+
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("Aceptar") { dialog, _ ->
+                dialog.dismiss()
+                partidoViewModel.markMatchAsSeen(userId, newStatus)
+                deleteMatch(userId)
+                finish()
+            }
+            .show()
+    }
+
     private fun finalizarPartido() {
         val partidoId = partidoViewModel.match.value?.id ?: return
         val reservaId = partidoViewModel.reserva.value?.id ?: return
         val userId = userViewModel.user.value?.id ?: return
 
+        partidoViewModel.stopCountdown()
         partidoViewModel.updateMatchStatus(partidoId, reservaId, FINISHED)
+        partidoViewModel.updateMatchesPlayed(userId)
 
         deleteMatch(userId)
 
@@ -641,7 +658,33 @@ class MatchDetailsActivity : AppCompatActivity() {
 
         userViewModel.setIsMatch(false)
 
-        SharedMatchData.clear()
+        //SharedMatchData.clear()
+    }
+
+    private val handler = Handler(Looper.getMainLooper())
+    private val updateCountdownRunnable = object : Runnable {
+        override fun run() {
+            val partidoId = partidoViewModel.match.value?.id ?: return
+            partidoViewModel.updateParticipantes(partidoId)
+            handler.postDelayed(this, 10000)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onResume() {
+        super.onResume()
+        handler.post(updateCountdownRunnable)
+
+        val partido = partidoViewModel.match.value
+        if(partido != null) {
+            partidoViewModel.ensureCountdownIsRunning(partido.fecha, partido.hora)
+            checkIfMatchEnded()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        handler.removeCallbacks(updateCountdownRunnable)
     }
 
     private lateinit var tvEstadoPartido: TextView
@@ -658,6 +701,7 @@ class MatchDetailsActivity : AppCompatActivity() {
     private lateinit var btnQuitarFondos: ImageButton
     private lateinit var tvEstadoReserva: TextView
     private lateinit var btnSuspender: AppCompatButton
+    private lateinit var btnConfirmar: AppCompatButton
     private lateinit var rvParticipantes: RecyclerView
     private lateinit var rvParticipantesAdapter: ParticipanteAdapter
     private lateinit var btnInvitarJugador: TextView

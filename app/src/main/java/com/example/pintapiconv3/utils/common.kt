@@ -95,12 +95,26 @@ object Utils {
 
     @SuppressLint("DefaultLocale")
     fun calcularHoraFin(horaInicio: String): String {
-        // Esto asume que cada partido dura 1 hora. Ajustar según sea necesario.
+        /* Esto asume que cada partido dura 1 hora. Ajustar según sea necesario.
         val partes = horaInicio.split(":")
         val hora = partes[0].toInt()
         val minutos = partes[1].toInt()
         val horaFin = hora + 1
-        return String.format("%02d:%02d", horaFin, minutos)
+        return String.format("%02d:%02d", horaFin, minutos)*/
+
+        val partes = horaInicio.split(":")
+        val hora = partes[0].toInt()
+        val minutos = partes[1].toInt()
+
+        // Incrementar una hora
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, hora)
+        calendar.set(Calendar.MINUTE, minutos)
+        calendar.add(Calendar.HOUR_OF_DAY, 1) // Sumar 1 hora
+
+        // Formatear a HH:mm:ss
+        val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        return timeFormat.format(calendar.time)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -169,16 +183,27 @@ object Utils {
         }
     }
 
-    fun convertDateFormat(dateStr: String): String? {
+    fun convertDateFormat(dateStr: String, sqlFormat: Boolean = true): String? {
         return try {
-            // Define el formato de entrada
-            val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            // Define el formato de salida
-            val outputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            // Analiza la fecha en el formato de entrada
-            val date = inputFormat.parse(dateStr)
-            // Formatea la fecha en el formato de salida
-            outputFormat.format(date!!)
+            if(sqlFormat) {
+                // Define el formato de entrada
+                val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                // Define el formato de salida
+                val outputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                // Analiza la fecha en el formato de entrada
+                val date = inputFormat.parse(dateStr)
+                // Formatea la fecha en el formato de salida
+                outputFormat.format(date!!)
+            } else {
+                // Formato de la fecha original
+                val formatoEntrada = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                // Formato de la fecha deseada
+                val formatoSalida = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+
+                // Parsear y formatear la fecha
+                val fecha = formatoEntrada.parse(dateStr)
+                formatoSalida.format(fecha!!)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             null

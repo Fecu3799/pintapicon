@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
 import com.example.pintapiconv3.models.User
 import com.example.pintapiconv3.repository.UserRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
@@ -50,6 +51,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     fun setIsCaptain(isCaptain: Boolean) {
         _isCaptain.value = isCaptain
     }
+
 }
 
 class UserViewModelFactory(private val userRepository: UserRepository): ViewModelProvider.Factory {

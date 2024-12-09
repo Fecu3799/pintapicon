@@ -16,6 +16,8 @@ import com.example.pintapiconv3.utils.Const.MatchStatus.PENDING
 import com.example.pintapiconv3.utils.Const.PaymentStatus.PAID
 import com.example.pintapiconv3.utils.Const.PaymentStatus.PENDING_PAYMENT
 import com.example.pintapiconv3.utils.Const.ReservationStatus.CANCELED
+import com.example.pintapiconv3.utils.Const.ReservationStatus.FINISHED
+import com.example.pintapiconv3.utils.Const.ReservationStatus.PAID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.sql.Connection
@@ -76,6 +78,10 @@ class PartidoRepository {
                     VALUES (?, ?, ?, ?, ?, ?)
             """.trimIndent()
 
+            val query4 = """
+                UPDATE cuentas SET numero_reservas = numero_reservas + 1 WHERE id = ?
+            """.trimIndent()
+
 
             var partidoId = 0
             conn?.prepareStatement(query1).use { preparedStatement ->
@@ -115,6 +121,11 @@ class PartidoRepository {
                 preparedStatement?.setInt(4, partido.idOrganizador)
                 preparedStatement?.setInt(5, reserva.idPartido)
                 preparedStatement?.setInt(6, Const.PaymentStatus.PENDING_PAYMENT)
+                preparedStatement?.executeUpdate()
+            }
+
+            conn?.prepareStatement(query4).use { preparedStatement ->
+                preparedStatement?.setInt(1, partido.idOrganizador)
                 preparedStatement?.executeUpdate()
             }
 
@@ -534,22 +545,48 @@ class PartidoRepository {
         var conn: Connection? = null
         try {
             conn = DBConnection.getConnection()
-            val query = "UPDATE partidos SET idEstado = ? WHERE id = ?"
-            val query2 = "UPDATE reservas SET idEstado = ? WHERE id = ?"
 
+
+            val query = "UPDATE partidos SET idEstado = ? WHERE id = ?"
             conn?.prepareStatement(query).use { preparedStatement ->
                 preparedStatement?.setInt(1, newStatus)
                 preparedStatement?.setInt(2, partidoId)
                 preparedStatement?.executeUpdate()
             }
 
+            val reservaStatus = when (newStatus) {
+                Const.MatchStatus.CONFIRMED -> Const.ReservationStatus.PAID
+                Const.MatchStatus.FINISHED -> Const.ReservationStatus.FINISHED
+                Const.MatchStatus.CANCELED -> Const.ReservationStatus.CANCELED
+                Const.MatchStatus.SUSPENDED -> Const.ReservationStatus.CANCELED
+                else -> throw IllegalArgumentException("Invalid new status")
+            }
+
+            Log.d("updateMatchStatus", "Estado de reserva: $reservaStatus")
+            val query2 = "UPDATE reservas SET idEstado = ? WHERE id = ?"
             conn?.prepareStatement(query2).use { preparedStatement ->
-                preparedStatement?.setInt(1, CANCELED)
+                preparedStatement?.setInt(1, reservaStatus)
                 preparedStatement?.setInt(2, reservaId)
                 preparedStatement?.executeUpdate()
             }
         } catch (e: SQLException) {
             throw SQLException("Error al actualizar el estado del partido: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+    }
+
+    suspend fun updateMatchesPlayed(userId: Int) {
+        var conn: Connection? = null
+        try {
+            val query = "UPDATE cuentas SET partidosJugados = partidosJugados + 1 WHERE id = ?"
+            conn = DBConnection.getConnection()
+            conn?.prepareStatement(query).use { preparedStatement ->
+                preparedStatement?.setInt(1, userId)
+                preparedStatement?.executeUpdate()
+            }
+        } catch (e: SQLException) {
+            throw SQLException("Error al actualizar partidos jugados: ${e.message}")
         } finally {
             conn?.close()
         }
@@ -679,6 +716,28 @@ class PartidoRepository {
             }
         } catch (e: SQLException) {
             throw SQLException("Error al actualizar el estado de la reserva: ${e.message}")
+        } finally {
+            conn?.close()
+        }
+    }
+
+    suspend fun updateParticipantStatus(partidoId: Int, userId: Int, newStatus: Int) {
+        var conn: Connection? = null
+        try {
+            conn = DBConnection.getConnection()
+            val query = """
+            UPDATE participantes
+            SET idEstado = ?
+            WHERE idPartido = ? AND idParticipante = ?
+        """.trimIndent()
+            conn?.prepareStatement(query).use { stmt ->
+                stmt?.setInt(1, newStatus)
+                stmt?.setInt(2, partidoId)
+                stmt?.setInt(3, userId)
+                stmt?.executeUpdate()
+            }
+        } catch (e: SQLException) {
+            throw SQLException("Error al actualizar los fondos del participante: ${e.message}")
         } finally {
             conn?.close()
         }

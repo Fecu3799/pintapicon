@@ -60,6 +60,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         txtTeamButton = view.findViewById(R.id.txt_btn_equipo)
         txtMatchButton = view.findViewById(R.id.txt_btn_partido)
 
+
         userViewModel.user.observe(viewLifecycleOwner) { user ->
             user?.let {
                 if(userViewModel.hasTeam.value == null) {

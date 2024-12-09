@@ -14,7 +14,13 @@ import com.example.pintapiconv3.models.Participante
 import com.example.pintapiconv3.models.Partido
 import com.example.pintapiconv3.models.Reserva
 import com.example.pintapiconv3.repository.PartidoRepository
+import com.example.pintapiconv3.utils.Const.MatchStatus.CANCELED
+import com.example.pintapiconv3.utils.Const.MatchStatus.CONFIRMED
 import com.example.pintapiconv3.utils.Const.MatchStatus.FINISHED
+import com.example.pintapiconv3.utils.Const.MatchStatus.SUSPENDED
+import com.example.pintapiconv3.utils.Const.PaymentMethod.ONLINE
+import com.example.pintapiconv3.utils.Const.PaymentStatus.MATCH_PLAYED
+import com.example.pintapiconv3.utils.Const.PaymentStatus.PAID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -118,6 +124,11 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
         }
     }
 
+    fun stopCountdown() {
+        countdownJob?.cancel()
+        countdownJob = null
+    }
+
     fun ensureCountdownIsRunning(fecha: String, hora: String) {
         if (countdownJob == null || countdownJob?.isActive == false) {
             startCountdown(fecha, hora)
@@ -132,13 +143,76 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
         }
     }
 
+    fun verifyMatchStatus() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val partido = _match.value ?: return@launch
+            val reserva = _reserva.value ?: return@launch
+            val participantes = _participantes.value ?: return@launch
+
+            val currentTime = Calendar.getInstance().time
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+            val matchStartTime = dateFormat.parse("${reserva.fecha} ${reserva.horaInicio}") ?: return@launch
+            val timeDiff = matchStartTime.time - currentTime.time
+
+            if(timeDiff <= TimeUnit.MINUTES.toMillis(1)) {  // CAMBIAR A MEDIA HORA
+                if(reserva.idMetodoPago == ONLINE) {
+                    val totalFunds = participantes.sumOf { it.montoPagado ?: 0.0 }
+                    val allConfirmed = participantes.all { it.idEstado == PAID }
+
+                    if(totalFunds >= reserva.monto && allConfirmed) {
+                        updateMatchStatus(partido.id, reserva.id, CONFIRMED)
+                    } else {
+                        stopCountdown()
+                        updateMatchStatus(partido.id, reserva.id, CANCELED)
+                    }
+                } else {
+                    val allConfirmed = participantes.all { it.idEstado == PAID }
+
+                    if(allConfirmed) {
+                        updateMatchStatus(partido.id, reserva.id, CONFIRMED)
+                    } else {
+                        stopCountdown()
+                        updateMatchStatus(partido.id, reserva.id, CANCELED)
+                    }
+                }
+            }
+        }
+    }
+
     fun updateMatchStatus(partidoId: Int, reservaId: Int, newStatus: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             partidoRepository.updateMatchStatus(partidoId, reservaId, newStatus)
 
             val updatedMatch = partidoRepository.getPartidoById(partidoId)
+            val updatedReserva = partidoRepository.getReservaByPartidoId(partidoId)
             withContext(Dispatchers.Main) {
                 _match.value = updatedMatch
+                _reserva.value = updatedReserva
+            }
+        }
+    }
+
+    fun updateMatchesPlayed(userInt: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            partidoRepository.updateMatchesPlayed(userInt)
+        }
+    }
+
+    fun updateParticipantStatus(userId: Int, newStatus: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val partidoId = _match.value?.id ?: return@launch
+
+                partidoRepository.updateParticipantStatus(partidoId, userId, newStatus)
+                val updatedParticipantes = partidoRepository.getParticipantesByPartidoId(match.value?.id ?: return@launch)
+                withContext(Dispatchers.Main) {
+                    _participantes.value = updatedParticipantes
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e("PartidoViewModel", "Error al actualizar el estado del participante: ${e.message}")
+                }
+
             }
         }
     }
@@ -194,6 +268,20 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
             }
         }
     }
+
+    fun markMatchAsSeen(userId: Int, newStatus: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val partidoId = _match.value?.id ?: return@launch
+
+            partidoRepository.updateParticipantStatus(partidoId, userId, newStatus)
+            val updatedParticipants = partidoRepository.getParticipantesByPartidoId(partidoId)
+            withContext(Dispatchers.Main) {
+                _participantes.postValue(updatedParticipants)
+            }
+        }
+    }
+
+
 
     fun markAsFinalized() {
         _haFinalizado.value = true

@@ -7,10 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.models.Miembro
 import com.example.pintapiconv3.models.Participante
+import com.example.pintapiconv3.utils.Const
 
 class ParticipanteAdapter(
     private val onDeleteClick: (participante: Participante) -> Unit
@@ -52,6 +54,7 @@ class ParticipanteAdapter(
         private val tvPosicion = itemView.findViewById<TextView>(R.id.tv_posicion)
         private val tvMontoPagado = itemView.findViewById<TextView>(R.id.tv_monto_pagado)
         private val btnDelete = itemView.findViewById<ImageButton>(R.id.btn_eliminar_participante)
+        private val checked = itemView.findViewById<View>(R.id.checked)
 
 
         @SuppressLint("SetTextI18n")
@@ -68,9 +71,17 @@ class ParticipanteAdapter(
                 btnDelete.visibility = View.GONE
             }
 
+            if(participante.idEstado == Const.PaymentStatus.PAID) {
+                tvNombre.setTextColor(ContextCompat.getColor(itemView.context, R.color.green))
+                checked.visibility = View.VISIBLE
+            } else {
+                tvNombre.setTextColor(ContextCompat.getColor(itemView.context, R.color.white))
+                checked.visibility = View.GONE
+            }
+
             val montoPagado = participante.montoPagado ?: 0.0
 
-            tvMontoPagado.text = "Pagado: $${String.format("%.1f", montoPagado)}"
+            tvMontoPagado.text = "$${String.format("%.1f", montoPagado)}"
         }
     }
 }

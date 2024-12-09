@@ -109,7 +109,8 @@
                 android:id="@+id/rv_participantes"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="5dp"/>
+                android:padding="5dp"
+                android:layout_gravity="center"/>
 
         </LinearLayout>
 
@@ -264,6 +265,17 @@
                 android:layout_marginBottom="25dp"/>
 
             <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_confirmar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Confirmar"
+                android:textStyle="bold"
+                android:background="@color/green"
+                android:layout_gravity="center"
+                android:textColor="@color/white"
+                />
+
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btn_suspender"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -272,7 +284,7 @@
                 android:background="@color/red"
                 android:layout_gravity="center"
                 android:textColor="@color/white"
-                />
+                android:layout_marginTop="30dp"/>
 
         </LinearLayout>
 

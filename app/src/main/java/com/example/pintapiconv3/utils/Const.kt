@@ -10,16 +10,23 @@ object Const {
         const val CONFIRMED = 12
         const val IN_COURSE = 13
         const val FINISHED = 14
+        const val SUSPENDED = 28
     }
     object ReservationStatus {
         const val PENDING_PAYMENT = 19
         const val PAID = 20
+        const val FINISHED = 25
         const val CANCELED = 21
     }
+
     object PaymentStatus {
         const val PENDING_PAYMENT = 22
         const val PARCIAL_PAID = 23
         const val PAID = 24
+        const val MATCH_PLAYED = 26
+        const val MATCH_SUSPENDED = 27
+        const val MATCH_CANCELED = 29
+        const val KICKED_OUT = 30
     }
 
     object FieldStatus {
@@ -41,5 +48,11 @@ object Const {
         const val MALE = 1
         const val FEMALE = 2
         const val OTHER = 3
+    }
+
+    object PaymentMethod {
+        const val CASH = 1
+        const val TRANSFER = 2
+        const val ONLINE = 3
     }
 }

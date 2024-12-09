@@ -36,6 +36,7 @@ import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.Const.MatchStatus.PENDING
 import com.example.pintapiconv3.utils.Const.ReservationStatus.PENDING_PAYMENT
 import com.example.pintapiconv3.utils.Utils.calcularHoraFin
+import com.example.pintapiconv3.utils.Utils.convertDateFormat
 import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import com.example.pintapiconv3.viewmodel.UserViewModelFactory
@@ -44,6 +45,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class CreateMatchDialog : DialogFragment() {
 
@@ -168,7 +170,11 @@ class CreateMatchDialog : DialogFragment() {
             Toast.makeText(requireContext(), "La fecha y hora seleccionadas deben ser futuras", Toast.LENGTH_SHORT).show()
             return false
         }
-
+        val diffOneHour = calendarFechaSeleccionada.timeInMillis - calendarFechaActual.timeInMillis
+        if(diffOneHour < TimeUnit.MINUTES.toMillis(1)) {  // CAMBIAR A UNA HORA
+            Toast.makeText(requireContext(), "La reserva debe hacerse con una hora de anticipación como mínimo", Toast.LENGTH_SHORT).show()
+            return false
+        }
         if (spnerSeleccionarTipoCancha.selectedItem == null) {
             Toast.makeText(requireContext(), "Por favor seleccione el tipo de cancha", Toast.LENGTH_SHORT).show()
             return false
@@ -192,10 +198,30 @@ class CreateMatchDialog : DialogFragment() {
         lifecycleScope.launch(Dispatchers.Main) {
             val horaFin = calcularHoraFin(horaSeleccionada)
             val tipoCancha = spnerSeleccionarTipoCancha.selectedItemPosition + 1
-            val canchasDisponibles = withContext(Dispatchers.IO) {
-                partidoRepository.getCanchasByTipoYHorario(tipoCancha, fechaSeleccionada, horaSeleccionada, horaFin)
+
+            val dateFormatRegex = Regex("""\d{4}-\d{2}-\d{2}""") // Formato yyyy-MM-dd
+            val timeFormatRegex = Regex("""\d{2}:\d{2}:\d{2}""") // Formato HH:mm:ss
+
+            if (!dateFormatRegex.matches(fechaSeleccionada)) {
+                Log.e("CreateMatchDialog", "La fecha $fechaSeleccionada debe estar en formato yyyy-MM-dd")
+                return@launch
             }
-            pickCanchaAdapter.setCanchas(canchasDisponibles)
+
+            if (!timeFormatRegex.matches(horaSeleccionada) || !timeFormatRegex.matches(horaFin)) {
+                Log.e("CreateMatchDialog", "Las horas $horaSeleccionada, $horaFin debe estar en formato HH:mm:ss")
+                return@launch
+            }
+
+            try {
+
+                val canchasDisponibles = withContext(Dispatchers.IO) {
+                    partidoRepository.getCanchasByTipoYHorario(tipoCancha, fechaSeleccionada, horaSeleccionada, horaFin)
+                }
+                pickCanchaAdapter.setCanchas(canchasDisponibles)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error al obtener las canchas disponibles", Toast.LENGTH_SHORT).show()
+                Log.e("CreateMatchDialog", "Error al obtener las canchas disponibles: ${e.message}")
+            }
         }
     }
 
