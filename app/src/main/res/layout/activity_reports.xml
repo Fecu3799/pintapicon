@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".app.admin.ReportsActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Reportes y Listado"
+        android:textSize="24sp"
+        android:layout_gravity="center"
+        android:layout_margin="15dp"
+        android:textColor="@color/black"
+        android:textStyle="bold"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/fecha_desde"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/et_background"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="Desde"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:drawableStart="@drawable/ic_calendar"
+            android:layout_marginEnd="15dp"/>
+
+        <TextView
+            android:id="@+id/fecha_hasta"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/et_background"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="Hasta"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:drawableStart="@drawable/ic_calendar"
+            android:layout_marginStart="15dp"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Entidad "
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:textColor="@color/black"/>
+
+    <Spinner
+        android:id="@+id/spner_entidades"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="8dp"/>
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="20dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_listado"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"/>
+
+    </HorizontalScrollView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="10dp"
+        android:layout_margin="10dp"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="4dp">
+
+    <com.github.mikephil.charting.charts.PieChart
+        android:id="@+id/pie_chart"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"/>
+
+
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>
