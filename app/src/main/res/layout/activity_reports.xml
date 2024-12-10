@@ -53,38 +53,51 @@
 
     </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Entidad "
-        android:layout_gravity="center"
-        android:layout_marginTop="20dp"
-        android:textColor="@color/black"/>
+        android:orientation="horizontal"
+        android:layout_marginTop="15dp"
+        android:gravity="center">
 
-    <Spinner
-        android:id="@+id/spner_entidades"
-        android:layout_width="150dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="8dp"/>
+        <Spinner
+            android:id="@+id/spner_entidades"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginEnd="20dp"/>
+
+        <Spinner
+            android:id="@+id/spner_filtro"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="20dp"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+
+
 
     <HorizontalScrollView
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginTop="20dp">
+        android:layout_height="400dp"
+        android:layout_marginTop="20dp"
+        android:fillViewport="true">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_listado"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"/>
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:scrollbars="horizontal"/>
 
     </HorizontalScrollView>
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="15dp"
         android:layout_margin="10dp"
         app:cardCornerRadius="10dp"
         app:cardElevation="4dp">

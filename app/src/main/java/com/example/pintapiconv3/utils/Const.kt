@@ -55,4 +55,10 @@ object Const {
         const val TRANSFER = 2
         const val ONLINE = 3
     }
+
+    object Entities {
+        const val USERS = "Usuarios"
+        const val RESERVATIONS = "Reservas"
+        const val MATCHES = "Partidos"
+    }
 }
