@@ -18,7 +18,7 @@
         android:theme="@style/Theme.PintaPiconV3"
         tools:targetApi="31">
         <activity
-            android:name=".app.admin.ReportsActivity"
+            android:name=".app.admin.reportes.ReportsActivity"
             android:exported="false" />
         <activity
             android:name=".app.user.match.MatchDetailsActivity"
@@ -30,19 +30,19 @@
             android:name=".app.user.team.TeamManagementActivity"
             android:exported="false" />
         <activity
-            android:name=".app.admin.EditPredioActivity"
+            android:name=".app.admin.abmPredios.EditPredioActivity"
             android:exported="false" />
         <activity
-            android:name=".app.admin.NewPredioActivity"
+            android:name=".app.admin.abmPredios.NewPredioActivity"
             android:exported="false" />
         <activity
-            android:name=".app.admin.AbmPrediosActivity"
+            android:name=".app.admin.abmPredios.AbmPrediosActivity"
             android:exported="false" />
         <activity
-            android:name=".app.admin.NewUserDialog"
+            android:name=".app.admin.abmUsuarios.NewUserDialog"
             android:exported="false" />
         <activity
-            android:name=".app.admin.AbmUserActivity"
+            android:name=".app.admin.abmUsuarios.AbmUserActivity"
             android:exported="false" />
         <activity
             android:name=".app.admin.MainActivityAdmin"
@@ -51,7 +51,7 @@
             android:name=".app.user.SigninActivity"
             android:exported="false" />
         <activity
-            android:name=".app.admin.MarkOnMapDialog"
+            android:name=".app.admin.abmPredios.MarkOnMapDialog"
             android:exported="false" />
         <activity
             android:name=".app.LoginActivity"

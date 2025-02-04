@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.app.admin
+package com.example.pintapiconv3.app.admin.reportes
 
 import android.app.DatePickerDialog
 import android.graphics.Color
@@ -19,14 +19,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.DynamicReportAdapter
 import com.example.pintapiconv3.repository.ReportesRepository
-import com.example.pintapiconv3.utils.Const
 import com.example.pintapiconv3.utils.Const.Entities.MATCHES
 import com.example.pintapiconv3.utils.Const.Entities.RESERVATIONS
 import com.example.pintapiconv3.utils.Const.Entities.USERS
-import com.example.pintapiconv3.utils.Utils.showToast
 import com.example.pintapiconv3.viewmodel.ReportesViewModel
 import com.example.pintapiconv3.viewmodel.ReportesViewModelFactory
-import com.fasterxml.jackson.databind.ser.std.StdKeySerializers.Dynamic
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.PieData
@@ -35,7 +32,6 @@ import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.PercentFormatter
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
-import com.github.mikephil.charting.utils.ColorTemplate
 import java.text.SimpleDateFormat
 import java.util.Locale
 

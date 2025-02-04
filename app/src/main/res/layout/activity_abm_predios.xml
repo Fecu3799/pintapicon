@@ -4,7 +4,7 @@
     android:id="@+id/activity_main_admin"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".app.admin.AbmPrediosActivity">
+    tools:context=".app.admin.abmPredios.AbmPrediosActivity">
 
     <View
         android:id="@+id/btnAtras"

@@ -10,6 +10,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.app.LoginActivity
+import com.example.pintapiconv3.app.admin.abmPredios.AbmPrediosActivity
+import com.example.pintapiconv3.app.admin.abmUsuarios.AbmUserActivity
+import com.example.pintapiconv3.app.admin.reportes.ReportsActivity
 import com.example.pintapiconv3.repository.UserRepository
 
 

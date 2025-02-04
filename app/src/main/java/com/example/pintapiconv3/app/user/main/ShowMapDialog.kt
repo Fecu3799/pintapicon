@@ -3,15 +3,13 @@ package com.example.pintapiconv3.app.user.main
 import android.app.Dialog
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.example.pintapiconv3.R
-import com.example.pintapiconv3.app.admin.NewPredioActivity.Companion.LOCATION_PERMISSION_REQUEST_CODE
+import com.example.pintapiconv3.app.admin.abmPredios.NewPredioActivity.Companion.LOCATION_PERMISSION_REQUEST_CODE
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback

@@ -1,4 +1,4 @@
-package com.example.pintapiconv3.app.admin
+package com.example.pintapiconv3.app.admin.abmPredios
 
 import android.app.Activity
 import android.content.Intent
