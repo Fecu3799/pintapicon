@@ -19,6 +19,7 @@ import com.example.pintapiconv3.repository.EquipoRepository
 import com.example.pintapiconv3.repository.UserRepository
 import com.example.pintapiconv3.utils.Utils.isValidEmail
 import com.example.pintapiconv3.utils.Utils.showToast
+import com.example.pintapiconv3.viewmodel.SharedUserData
 import com.example.pintapiconv3.viewmodel.UserViewModel
 import com.example.pintapiconv3.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.Dispatchers
@@ -40,9 +41,7 @@ class TeamManagementActivity : AppCompatActivity() {
     private val userRepository = UserRepository()
     private val equipoRepository = EquipoRepository()
 
-    private val userViewModel: UserViewModel by viewModels {
-        UserViewModelFactory(userRepository)
-    }
+    private lateinit var userViewModel: UserViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +53,8 @@ class TeamManagementActivity : AppCompatActivity() {
             insets
         }
 
-        //userViewModel = SharedUserData.userViewModel!!
+        SharedUserData.init(this, userRepository)
+        userViewModel = SharedUserData.userViewModel!!
 
         tvNombreEquipo = findViewById(R.id.tv_nombre_equipo)
         etInvitacionEmail = findViewById(R.id.et_invitacion_email)

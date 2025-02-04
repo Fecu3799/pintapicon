@@ -45,7 +45,7 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
         val users = userRepository.getAllUsers()
 
         // Ordenar las cuentas por estado
-        val sortedUsers = users.sortedBy { it.estado == DELETED}
+        val sortedUsers = users.sortedBy { it.estado == DELETED}.toMutableList()
 
         // Configurar el adapter del ListView
         userAdapter = UserAdapter(this, sortedUsers)
@@ -72,6 +72,7 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
 
     override fun onUserUpdated(updatedUser: User) {
 
+        // Convierte el contenido del adaptador actual a una lista mutable para actualizar los datos
         val updatedList = (0 until userAdapter.count).mapNotNull { userAdapter.getItem(it) }.toMutableList()
 
         // Busca el usuario actualizado en la lista
@@ -99,7 +100,18 @@ class AbmUserActivity : AppCompatActivity(), UserDetailDialog.UserUpdateListener
                 userRepository.addUser(newUser)
             }
         }
-        userAdapter.add(newUser)
-        userAdapter.notifyDataSetChanged()
+
+        val currentList = (0 until userAdapter.count).mapNotNull { userAdapter.getItem(it) }.toMutableList()
+        currentList.add(newUser)
+
+        // Reordena la lista para mantener el orden
+        val sortedUsers = currentList.sortedBy { it.estado == DELETED }
+
+        // Actualiza el adaptador
+        userAdapter = UserAdapter(this, sortedUsers.toMutableList())
+        userListView.adapter = userAdapter
+
+        //userAdapter.add(newUser)
+        //userAdapter.notifyDataSetChanged()
     }
 }

@@ -98,7 +98,7 @@ class AbmPrediosActivity : AppCompatActivity() {
     }
 
     private fun verDetallesPredio(predio: Predio) {
-        //TODO: Ver detalles del predio
+        //TODO: Ver detalles del predi
         showToast("Falta implementar")
     }
 

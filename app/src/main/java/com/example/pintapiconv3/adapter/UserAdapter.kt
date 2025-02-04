@@ -41,7 +41,7 @@ class UserAdapter(context: Context, users: List<User>): ArrayAdapter<User>(conte
         }
 
         val user = getItem(position)
-        Log.d("UserAdapter", "Usuario: ${user?.nombre}, ${user?.email}, ${user?.isAdmin}")
+        //Log.d("UserAdapter", "Usuario: ${user?.nombre}, ${user?.email}, ${user?.isAdmin}")
 
         holder.userName.text = user?.nombre
         holder.userEmail.text = user?.email

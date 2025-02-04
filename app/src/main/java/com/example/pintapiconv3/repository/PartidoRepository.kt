@@ -579,7 +579,7 @@ class PartidoRepository {
     suspend fun updateMatchesPlayed(userId: Int) {
         var conn: Connection? = null
         try {
-            val query = "UPDATE cuentas SET partidosJugados = partidosJugados + 1 WHERE id = ?"
+            val query = "UPDATE cuentas SET partidos_jugados = partidos_jugados + 1 WHERE id = ?"
             conn = DBConnection.getConnection()
             conn?.prepareStatement(query).use { preparedStatement ->
                 preparedStatement?.setInt(1, userId)

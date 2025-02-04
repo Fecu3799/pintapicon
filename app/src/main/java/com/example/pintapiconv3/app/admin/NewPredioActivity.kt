@@ -51,9 +51,9 @@ class NewPredioActivity : AppCompatActivity() {
     private val sqlServerHelper = SQLServerHelper()
 
     private var canchasList = mutableListOf<Cancha>()
-    private var currentLayout = 0
-
     private var horariosList = mutableListOf<Horario>()
+
+    private var currentLayout = 0
 
     private var predio: Predio? = null
     private var cancha: Cancha? = null

@@ -641,6 +641,7 @@ class MatchDetailsActivity : AppCompatActivity() {
 
         partidoViewModel.stopCountdown()
         partidoViewModel.updateMatchStatus(partidoId, reservaId, FINISHED)
+        partidoViewModel.updateParticipantStatus(userId, MATCH_PLAYED)
         partidoViewModel.updateMatchesPlayed(userId)
 
         deleteMatch(userId)

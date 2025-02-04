@@ -53,31 +53,12 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <Spinner
+        android:id="@+id/spner_entidades"
+        android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="15dp"
-        android:gravity="center">
-
-        <Spinner
-            android:id="@+id/spner_entidades"
-            android:layout_width="150dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginEnd="20dp"/>
-
-        <Spinner
-            android:id="@+id/spner_filtro"
-            android:layout_width="150dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginStart="20dp"
-            android:visibility="gone"/>
-
-    </LinearLayout>
-
-
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"/>
 
     <HorizontalScrollView
         android:layout_width="match_parent"

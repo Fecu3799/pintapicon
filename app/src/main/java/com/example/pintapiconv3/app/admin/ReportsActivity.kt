@@ -1,6 +1,7 @@
 package com.example.pintapiconv3.app.admin
 
 import android.app.DatePickerDialog
+import android.graphics.Color
 import android.icu.util.Calendar
 import android.os.Bundle
 import android.widget.AdapterView
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.adapter.DynamicReportAdapter
 import com.example.pintapiconv3.repository.ReportesRepository
+import com.example.pintapiconv3.utils.Const
 import com.example.pintapiconv3.utils.Const.Entities.MATCHES
 import com.example.pintapiconv3.utils.Const.Entities.RESERVATIONS
 import com.example.pintapiconv3.utils.Const.Entities.USERS
@@ -42,7 +44,6 @@ class ReportsActivity : AppCompatActivity() {
     private lateinit var fechaDesde: TextView
     private lateinit var fechaHasta: TextView
     private lateinit var spnerEntidades: Spinner
-    private lateinit var spnerFiltro: Spinner
     private lateinit var rvListado: RecyclerView
     private lateinit var pieChart: PieChart
     private lateinit var reportsAdapter: DynamicReportAdapter
@@ -52,7 +53,7 @@ class ReportsActivity : AppCompatActivity() {
         ReportesViewModelFactory(reportesRepository)
     }
 
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private val dateFormat = SimpleDateFormat("dd-MM-yy", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,7 +76,6 @@ class ReportsActivity : AppCompatActivity() {
         fechaDesde = findViewById(R.id.fecha_desde)
         fechaHasta = findViewById(R.id.fecha_hasta)
         spnerEntidades = findViewById(R.id.spner_entidades)
-        spnerFiltro = findViewById(R.id.spner_filtro)
         rvListado = findViewById(R.id.rv_listado)
         pieChart = findViewById(R.id.pie_chart)
 
@@ -93,7 +93,17 @@ class ReportsActivity : AppCompatActivity() {
                 USERS -> listOf("Nombre", "Apellido", "Reservas", "Partidos jugados", "Abandonos")
                 else -> emptyList()
             }
-            reportsAdapter.setData(columnTitles, data, entity)
+
+            val formattedData = data.map { record ->
+                val formattedFields = record.fields.mapIndexed { index, field ->
+                    if(entity in listOf(RESERVATIONS, MATCHES) && index == 0) {
+                        formatDate(field)
+                    } else field
+                }
+                record.copy(fields = formattedFields)
+            }
+
+            reportsAdapter.setData(columnTitles, formattedData, entity)
         }
 
         reportesViewModel.chartData.observe(this) { chartData ->
@@ -107,6 +117,17 @@ class ReportsActivity : AppCompatActivity() {
 
     }
 
+    private fun formatDate(dateString: String): String {
+        return try {
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("dd-MM-yy", Locale.getDefault())
+            val date = inputFormat.parse(dateString)
+            outputFormat.format(date!!)
+        } catch (e: Exception) {
+            dateString
+        }
+    }
+
     private fun setupSpinners() {
         val entidades = listOf("ENTIDADES", USERS, RESERVATIONS, MATCHES)
         val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, entidades)
@@ -118,24 +139,7 @@ class ReportsActivity : AppCompatActivity() {
                 val entity = entidades[position]
                 if(entity != "ENTIDADES") {
                     fetchAndDisplayData()
-                    when (entity) {
-                        RESERVATIONS -> {
-                            spnerFiltro.visibility = android.view.View.VISIBLE
-                            setupSpinnerFilters(RESERVATIONS)
-                        }
-                        MATCHES -> {
-                            spnerFiltro.visibility = android.view.View.VISIBLE
-                            setupSpinnerFilters(MATCHES)
-                        }
-                        USERS -> {
-                            spnerFiltro.visibility = android.view.View.GONE
-                            reportsAdapter.setData(emptyList(), emptyList(), entity)
-                            pieChart.clear()
-                            pieChart.invalidate()
-                        }
-                    }
                 } else {
-                    spnerFiltro.visibility = android.view.View.GONE
                     reportsAdapter.setData(emptyList(), emptyList(), entity)
                     pieChart.clear()
                     pieChart.invalidate()
@@ -146,10 +150,6 @@ class ReportsActivity : AppCompatActivity() {
                 // DO NOTHING
             }
         }
-    }
-
-    private fun setupSpinnerFilters(entity: String) {
-
     }
 
     private fun setupRecyclerView() {
@@ -220,8 +220,21 @@ class ReportsActivity : AppCompatActivity() {
     private fun updatePieChart(chartData: Map<String, Int>) {
         val pieEntries = chartData.map { PieEntry(it.value.toFloat(), it.key, it.key) }
 
-        val dataSet = PieDataSet(pieEntries, "Estados")
-        dataSet.colors = ColorTemplate.MATERIAL_COLORS.toList()
+        val estadoColores = mapOf(
+            "Cancelado" to Color.parseColor("#FF0000"),
+            "Finalizado" to Color.parseColor("#27FF60"),
+            "Suspendido" to Color.parseColor("#EACC23"),
+
+            "Finalizada" to Color.parseColor("#27FF60"),
+            "Cancelada" to Color.parseColor("#FF0000")
+        )
+
+        val colors = pieEntries.map { entry ->
+            estadoColores[entry.label] ?: Color.GRAY
+        }
+
+        val dataSet = PieDataSet(pieEntries, "")
+        dataSet.colors = colors
         dataSet.valueTextSize = 12f
         dataSet.valueTextColor = ContextCompat.getColor(this, android.R.color.black)
         dataSet.sliceSpace = 3f
@@ -238,8 +251,6 @@ class ReportsActivity : AppCompatActivity() {
     private fun filterGridByState(state: String?) {
         val entity = spnerEntidades.selectedItem.toString()
 
-
-
         val filteredData = if(state != null) {
             reportesViewModel.reportData.value?.filter {
                 when (entity) {
@@ -247,9 +258,21 @@ class ReportsActivity : AppCompatActivity() {
                     MATCHES -> it.fields[2] == state
                     else -> false
                 }
+            }?.map { record ->
+                record.copy(fields = record.fields.mapIndexed { index, field ->
+                    if(entity in listOf(RESERVATIONS, MATCHES) && index == 0) {
+                        formatDate(field)
+                    } else field
+                })
             } ?: emptyList()
         } else {
-            reportesViewModel.reportData.value ?: emptyList()
+            reportesViewModel.reportData.value?.map { record ->
+                record.copy(fields = record.fields.mapIndexed { index, field ->
+                    if(entity in listOf(RESERVATIONS, MATCHES) && index == 0) {
+                        formatDate(field)
+                    } else field
+                })
+            } ?: emptyList()
         }
 
         val columnTitles = when (entity) {

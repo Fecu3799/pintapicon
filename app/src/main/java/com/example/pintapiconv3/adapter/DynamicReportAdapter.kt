@@ -25,7 +25,7 @@ class DynamicReportAdapter(
 
     private val columnWidths = mapOf(
         RESERVATIONS to listOf(250, 200, 200, 200, 200, 250), // Ancho en px por columna para Reservas
-        MATCHES to listOf(250, 200, 200, 250, 250),           // Ancho en px por columna para Partidos
+        MATCHES to listOf(250, 200, 230, 250, 250),           // Ancho en px por columna para Partidos
         USERS to listOf(300, 300, 200, 200, 210)             // Ancho en px por columna para Usuarios
     )
 
@@ -71,12 +71,6 @@ class DynamicReportAdapter(
             val widths = columnWidths[entity] ?: List(columnTitles.size) {
                 itemView.context.resources.displayMetrics.widthPixels / columnTitles.size
             }
-
-            /*val columnWidth = if (columnTitles.isNotEmpty()) {
-                itemView.context.resources.displayMetrics.widthPixels / columnTitles.size
-            } else {
-                itemView.context.resources.displayMetrics.widthPixels
-            }*/
 
             columnTitles.forEachIndexed { index, title ->
                 val textView = TextView(itemView.context).apply {

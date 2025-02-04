@@ -226,5 +226,4 @@ class EditPredioActivity : AppCompatActivity() {
             showToast("Error. Verifique los datos ingresados")
         }
     }
-
 }

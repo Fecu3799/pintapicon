@@ -192,9 +192,9 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
         }
     }
 
-    fun updateMatchesPlayed(userInt: Int) {
+    fun updateMatchesPlayed(userId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            partidoRepository.updateMatchesPlayed(userInt)
+            partidoRepository.updateMatchesPlayed(userId)
         }
     }
 
@@ -279,12 +279,6 @@ class PartidoViewModel(private val partidoRepository: PartidoRepository) : ViewM
                 _participantes.postValue(updatedParticipants)
             }
         }
-    }
-
-
-
-    fun markAsFinalized() {
-        _haFinalizado.value = true
     }
 
     private fun finalizeMatch() {

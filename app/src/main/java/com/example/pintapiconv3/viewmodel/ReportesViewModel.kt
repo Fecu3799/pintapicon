@@ -11,6 +11,8 @@ import com.example.pintapiconv3.utils.Const.Entities.MATCHES
 import com.example.pintapiconv3.utils.Const.Entities.RESERVATIONS
 import com.example.pintapiconv3.utils.Const.Entities.USERS
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class ReportesViewModel(private val reportesRepository: ReportesRepository) : ViewModel() {
 
@@ -23,8 +25,8 @@ class ReportesViewModel(private val reportesRepository: ReportesRepository) : Vi
     fun fetchReportData(entity: String, fechaDesde: String?, fechaHasta: String?) {
         viewModelScope.launch {
             val result = when (entity) {
-                RESERVATIONS -> reportesRepository.getReservas(fechaDesde, fechaHasta)
-                MATCHES -> reportesRepository.getPartidos(fechaDesde, fechaHasta)
+                RESERVATIONS -> reportesRepository.getReservas(if(fechaDesde != null) formatDate(fechaDesde) else null, if(fechaHasta != null) formatDate(fechaHasta) else null)
+                MATCHES -> reportesRepository.getPartidos(if(fechaDesde != null) formatDate(fechaDesde) else null, if(fechaHasta != null) formatDate(fechaHasta) else null)
                 USERS -> reportesRepository.getUsuarios(fechaDesde, fechaHasta)
                 else -> emptyList()
             }
@@ -46,6 +48,17 @@ class ReportesViewModel(private val reportesRepository: ReportesRepository) : Vi
             }
         }
         _chartData.value = counts
+    }
+
+    private fun formatDate(dateString: String): String {
+        return try {
+            val inputFormat = SimpleDateFormat("dd-MM-yy", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val date = inputFormat.parse(dateString)
+            outputFormat.format(date!!)
+        } catch (e: Exception) {
+            dateString
+        }
     }
 }
 

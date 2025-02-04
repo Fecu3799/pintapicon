@@ -82,22 +82,22 @@ class UserDetailDialog : DialogFragment() {
 
     private fun initViews() {
 
-        userId = view!!.findViewById<EditText?>(R.id.et_userId)
-        userName = view!!.findViewById(R.id.et_userName)
-        userLastName = view!!.findViewById(R.id.et_userLastName)
-        userEmail = view!!.findViewById(R.id.et_userEmail)
-        userDateOfBirth = view!!.findViewById(R.id.et_userDateOfBirth)
-        userPhoneNumber = view!!.findViewById(R.id.et_userPhoneNumber)
-        userRol = view!!.findViewById(R.id.rg_userRole)
-        userStreet = view!!.findViewById(R.id.et_userStreet)
-        userStreetNumber = view!!.findViewById(R.id.et_userStreetNumber)
-        userHood = view!!.findViewById(R.id.spner_userHood)
-        userState = view!!.findViewById(R.id.spner_userState)
-        userGender = view!!.findViewById(R.id.spner_userGender)
-        userSkill = view!!.findViewById(R.id.spner_userSkill)
-        userPosition = view!!.findViewById(R.id.spner_userPosition)
-        btnSave = view!!.findViewById(R.id.btn_save)
-        btnCancel = view!!.findViewById(R.id.btn_cancel)
+        userId = requireView().findViewById(R.id.et_userId)
+        userName = requireView().findViewById(R.id.et_userName)
+        userLastName = requireView().findViewById(R.id.et_userLastName)
+        userEmail = requireView().findViewById(R.id.et_userEmail)
+        userDateOfBirth = requireView().findViewById(R.id.et_userDateOfBirth)
+        userPhoneNumber = requireView().findViewById(R.id.et_userPhoneNumber)
+        userRol = requireView().findViewById(R.id.rg_userRole)
+        userStreet = requireView().findViewById(R.id.et_userStreet)
+        userStreetNumber = requireView().findViewById(R.id.et_userStreetNumber)
+        userHood = requireView().findViewById(R.id.spner_userHood)
+        userState = requireView().findViewById(R.id.spner_userState)
+        userGender = requireView().findViewById(R.id.spner_userGender)
+        userSkill = requireView().findViewById(R.id.spner_userSkill)
+        userPosition = requireView().findViewById(R.id.spner_userPosition)
+        btnSave = requireView().findViewById(R.id.btn_save)
+        btnCancel = requireView().findViewById(R.id.btn_cancel)
     }
 
     private fun setViews() {
