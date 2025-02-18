@@ -1,6 +1,7 @@
 package com.example.pintapiconv3.app.admin.abmPredios.editPredioFragments
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -41,6 +42,7 @@ class EditHorariosFragment : Fragment() {
         horarioAdapter = EditHorarioAdapter(
             horarios = viewModel.horarios.value ?: mutableListOf(),
             onHorarioChanged = { horario ->
+                Log.d("EditHorarioFragmentCheck", "Horario actualizado: ${horario.dia} - ${horario.horaApertura} - ${horario.horaCierre}")
                 viewModel.addOrUpdateHorario(horario)
             }
         )

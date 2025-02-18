@@ -68,7 +68,6 @@ class EditCanchasFragment : Fragment() {
         rvCanchas.adapter = editCanchaAdapter
         rvCanchas.layoutManager = LinearLayoutManager(requireContext())
 
-
         viewModel.canchas.observe(viewLifecycleOwner) { updatedCanchas ->
             editCanchaAdapter.updateCanchas(updatedCanchas.toMutableList())
         }

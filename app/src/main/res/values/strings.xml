@@ -68,4 +68,8 @@
     </string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="phone_number">phone number</string>
+    <string name="ubicacion">Ubicacion</string>
+    <string name="numero_de_tel_fono">Numero de teléfono</string>
+    <string name="direccion">Direccion</string>
 </resources>

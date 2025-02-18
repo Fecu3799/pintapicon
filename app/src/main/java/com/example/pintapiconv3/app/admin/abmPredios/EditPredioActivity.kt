@@ -1,5 +1,6 @@
 package com.example.pintapiconv3.app.admin.abmPredios
 
+import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -66,6 +67,7 @@ class EditPredioActivity : AppCompatActivity() {
 
         predio = intent.getSerializableExtra("EXTRA_PREDIO") as Predio
         direccion = intent.getSerializableExtra("EXTRA_DIRECCION") as Direccion
+
 
         predioViewModel.updatePredio(predio)
         predioViewModel.updateDireccion(direccion)
@@ -174,9 +176,11 @@ class EditPredioActivity : AppCompatActivity() {
 
                     if(conn != null) {
                         val direccionActualizada = direccionRepository.updateDireccionWithConnection(conn, updatedDireccion)
+                        Log.d("Direccion UPDATE", "Actualizacion de la direccion: $direccionActualizada ($updatedDireccion)")
                         if(!direccionActualizada) throw SQLException("Error al actualizar la direccion")
 
                         val predioActualizado = predioRepository.updatePredioWithConnection(conn, updatedPredio)
+                        Log.d("Predio UPDATE", "Actualizacion del predio: $predioActualizado ($updatedPredio)")
                         if(!predioActualizado) throw SQLException("Error al actualizar el predio")
 
                         deletedCanchas?.forEach { cancha ->
@@ -194,7 +198,9 @@ class EditPredioActivity : AppCompatActivity() {
                             if(!canchaActualizada) throw SQLException("Error al actualizar ${cancha.nroCancha}")
                         }
 
+                        Log.d("ViewModelCheck", "Horarios a actualizar: $updatedHorarios")
                         updatedHorarios.forEach { horario ->
+                            Log.d("HorariosCheck", "Horario: ${horario.dia} - ${horario.horaApertura} - ${horario.horaCierre}")
                             val horarioActualizado = predioRepository.updateHorarioPredioWithConnection(conn, horario)
                             if(!horarioActualizado) throw SQLException("Error al actualizar horario ${horario.dia}")
                         }
@@ -203,6 +209,7 @@ class EditPredioActivity : AppCompatActivity() {
 
                         withContext(Dispatchers.Main) {
                             showToast("Cambios guardados correctamente")
+                            setResult(Activity.RESULT_OK)
                             finish()
                         }
                     } else {

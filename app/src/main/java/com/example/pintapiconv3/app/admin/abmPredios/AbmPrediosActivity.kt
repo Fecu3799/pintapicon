@@ -3,6 +3,7 @@ package com.example.pintapiconv3.app.admin.abmPredios
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ListView
@@ -77,7 +78,12 @@ class AbmPrediosActivity : AppCompatActivity() {
             }
             prediosList.clear()
             prediosList.addAll(predios)
-            predioAdminAdapter.notifyDataSetChanged()
+
+            Log.d("AbmPrediosActivity", "Predios actualizados: $prediosList")
+
+            runOnUiThread {
+                predioAdminAdapter.notifyDataSetChanged()
+            }
         }
     }
 
@@ -99,7 +105,30 @@ class AbmPrediosActivity : AppCompatActivity() {
 
     private fun verDetallesPredio(predio: Predio) {
         //TODO: Ver detalles del predi
-        showToast("Falta implementar")
+
+        CoroutineScope(Dispatchers.Main).launch {
+            val direccion = withContext(Dispatchers.IO) {
+                direccionRepository.getDireccionById(predio.idDireccion)
+            }
+            val canchas = withContext(Dispatchers.IO) {
+                predioRepository.getCanchasByPredio(predio.id)
+            }
+            val horarios = withContext(Dispatchers.IO) {
+                predioRepository.getHorariosByPredio(predio.id)
+            }
+
+            if(direccion != null) {
+                val intent = Intent(this@AbmPrediosActivity, ViewPredioActivity::class.java).apply {
+                    putExtra("EXTRA_PREDIO", predio)
+                    putExtra("EXTRA_DIRECCION", direccion)
+                    putExtra("EXTRA_CANCHAS", ArrayList(canchas))
+                    putExtra("EXTRA_HORARIOS", ArrayList(horarios))
+                }
+                viewPredioLauncher.launch(intent)
+            } else {
+                showToast("Error al cargar los datos del predio")
+            }
+        }
     }
 
     private val addPredioLauncher =
@@ -108,9 +137,18 @@ class AbmPrediosActivity : AppCompatActivity() {
                 cargarPredios()
         }
 
-    private val editPredioLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if(result.resultCode == Activity.RESULT_OK)
+    private val editPredioLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if(result.resultCode == Activity.RESULT_OK) {
+            Log.d("AbmPrediosActivity", "Se actualizo el predio")
+            cargarPredios()
+        } else {
+            Log.e("AbmPrediosActivity", "No se actualizo el predio")
+        }
+    }
+
+    private val viewPredioLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if(result.resultCode == Activity.RESULT_OK) {
             cargarPredios()
         }
+    }
 }

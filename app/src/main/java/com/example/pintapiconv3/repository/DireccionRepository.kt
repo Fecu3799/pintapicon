@@ -125,8 +125,6 @@ class DireccionRepository {
 
         } catch (e: SQLException) {
             e.printStackTrace()
-        } finally {
-            conn.close()
         }
         return isSuccess
     }

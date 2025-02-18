@@ -98,8 +98,6 @@ class PredioRepository {
 
         } catch (e: SQLException) {
             e.printStackTrace()
-        } finally {
-            conn.close()
         }
         return isSuccess
     }
@@ -166,8 +164,6 @@ class PredioRepository {
         } catch (e: SQLException) {
             e.printStackTrace()
             false
-        } finally {
-            conn.close()
         }
     }
 
@@ -228,7 +224,7 @@ class PredioRepository {
 
         try {
             val query = """
-                SELECT p.id, p.nombre, p.telefono, p.idDireccion, p.idEstado, d.calle, d.numero, d.idBarrio, b.descripcion
+                SELECT p.id, p.nombre, p.telefono, p.idDireccion, p.idEstado, p.url_google_maps, d.calle, d.numero, d.idBarrio, b.descripcion
                 FROM predios p
                 LEFT JOIN direcciones d ON p.idDireccion = d.id
                 LEFT JOIN barrios b ON d.idBarrio = b.id
@@ -245,7 +241,7 @@ class PredioRepository {
                         telefono = resultSet.getString("telefono"),
                         idDireccion = resultSet.getInt("idDireccion"),
                         idEstado = resultSet.getInt("idEstado"),
-                        url_google_maps = null
+                        url_google_maps = resultSet.getString("url_google_maps")
                     )
                     val canchas = getCanchasByPredio(predio.id)
                     predio.canchas = canchas

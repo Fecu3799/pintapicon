@@ -16,11 +16,11 @@ class PredioViewModel : ViewModel() {
     val horarios: MutableLiveData<MutableList<Horario>> = MutableLiveData(mutableListOf())
 
     fun updatePredio(updatedPredio: Predio) {
-        predio.value = updatedPredio
+        predio.postValue(updatedPredio)
     }
 
     fun updateDireccion(updatedDireccion: Direccion) {
-        direccion.value = updatedDireccion
+        direccion.postValue(updatedDireccion)
     }
 
     fun updateCanchas(updatedCanchas: MutableList<Cancha>) {
@@ -59,6 +59,7 @@ class PredioViewModel : ViewModel() {
     fun addOrUpdateHorario(horario: Horario) {
         val updatedHorarios = horarios.value ?: mutableListOf()
         val existingHorarioIndex = updatedHorarios.indexOfFirst { it.dia == horario.dia }
+
         if(existingHorarioIndex != -1) {
             updatedHorarios[existingHorarioIndex] = horario
         } else {

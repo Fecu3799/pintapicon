@@ -9,9 +9,11 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pintapiconv3.R
 import com.example.pintapiconv3.models.Horario
+import com.example.pintapiconv3.utils.DiffCallback
 import java.util.Calendar
 
 class EditHorarioAdapter(
@@ -33,22 +35,32 @@ class EditHorarioAdapter(
         val spinnerAdapter = ArrayAdapter(holder.itemView.context, android.R.layout.simple_spinner_item, estados)
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         holder.spnerEstadoPredio.adapter = spinnerAdapter
-        holder.spnerEstadoPredio.setSelection(if (horario.horaApertura == "00:00" && horario.horaCierre == "00:00") 1 else 0)
+        holder.spnerEstadoPredio.setSelection(if (horario.horaApertura == "00:00:00" && horario.horaCierre == "00:00:00") 1 else 0)
+
+        val isClosed = horario.horaApertura == "00:00:00" && horario.horaCierre == "00:00:00"
+        holder.spnerEstadoPredio.setSelection(if(isClosed) 1 else 0)
+
+        holder.tvHoraApertura.isEnabled = !isClosed
+        holder.tvHoraCierre.isEnabled = !isClosed
+
+        holder.tvHoraApertura.text = if (isClosed) "00:00:00" else horario.horaApertura
+        holder.tvHoraCierre.text = if(isClosed) "00:00:00" else horario.horaCierre
 
         holder.spnerEstadoPredio.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 if(position == 1) {
                     holder.tvHoraApertura.isEnabled = false
                     holder.tvHoraCierre.isEnabled = false
-                    holder.tvHoraApertura.text = "00:00"
-                    holder.tvHoraCierre.text = "00:00"
-                    horario.horaApertura = "00:00"
-                    horario.horaCierre = "00:00"
+                    holder.tvHoraApertura.text = "00:00:00"
+                    holder.tvHoraCierre.text = "00:00:00"
+                    horario.horaApertura = "00:00:00"
+                    horario.horaCierre = "00:00:00"
                 } else {
                     holder.tvHoraApertura.isEnabled = true
                     holder.tvHoraCierre.isEnabled = true
-                    holder.tvHoraApertura.text = if (horario.horaApertura != "00:00") horario.horaApertura else "Apertura"
-                    holder.tvHoraCierre.text = if (horario.horaCierre != "00:00") horario.horaCierre else "Cierre"
+
+                    holder.tvHoraApertura.text = if (horario.horaApertura.isNotEmpty() && horario.horaApertura != "00:00:00") horario.horaApertura else "00:00:00"
+                    holder.tvHoraCierre.text = if (horario.horaCierre.isNotEmpty() && horario.horaCierre != "00:00:00") horario.horaCierre else "00:00:00"
                 }
                 onHorarioChanged(horario)
             }
@@ -103,8 +115,17 @@ class EditHorarioAdapter(
     }
 
     fun updateHorarios(newHorarios: MutableList<Horario>) {
+        val diffCallback = DiffCallback(
+            oldList = horarios,
+            newList = newHorarios,
+            areItemsSame = { oldItem, newItem -> oldItem.dia == newItem.dia },
+            areContentsSame = { oldItem, newItem -> oldItem == newItem }
+        )
+
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+
         horarios.clear()
         horarios.addAll(newHorarios)
-        notifyDataSetChanged()
+        diffResult.dispatchUpdatesTo(this)
     }
 }
