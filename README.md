@@ -12,9 +12,17 @@ PintaPicón es una aplicación para organizar partidos de fútbol amateur: crear
 El objetivo es mostrar una solución simple y entendible al problema de coordinar un partido con amigos, donde surgen algunos problemas de asistencia, pagos no equitativos y reserva de canchas.
 <br>
 
+## Aclaración (2025)
+Este proyecto está desarrollado con conocimientos básicos, por lo que los siguientes puntos no están presentes:
+  - Arquitectura bien definida.
+  - Patrones de diseño correctos.
+  - Backend y servidor, todo se ejecuta del lado del cliente.
+  - Módulos de testing.
+  - Framework y ORM.
+
 ## Estado del proyecto 
 
-  - **Simulación sin backend:** no hay servidor ni API. Toda la lógica viven en el cliente conectados a una base de datos SQL Server.
+  - **Simulación sin backend:** no hay servidor ni API. Toda la lógica vive en el cliente conectados a una base de datos SQL Server local.
   - **Persistencia local / mocks** para representar flujos reales (invitaciones, confirmaciones, equipos).
   - Enfoque en UX y recorridos clave más que en infraestructura.
 
@@ -36,4 +44,4 @@ El objetivo es mostrar una solución simple y entendible al problema de coordina
   3. Ejecutar en un emulador.
 
 ### Autor
-  Facundo Reynoso © 2025 
+  Facundo Reynoso 2024
