@@ -1,7 +1,7 @@
 <h1 align="center">
   PintaPicón
 </h1>
-Proyecto integrador final de la **Tecnicatura en Desarrollo de Software** Este README está orientado a explicar qué es la app y cómo está construída.
+Proyecto integrador final de la <b>Tecnicatura en Desarrollo de Software</b> Este README está orientado a explicar qué es la app y cómo está construída.
 <br>
 
 
